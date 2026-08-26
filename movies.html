@@ -70,6 +70,38 @@ header { padding: 25px 5%; display: flex; justify-content: space-between; align-
 <script>
 let currentFilter = 'ALL';
 
+// Default Movies Array (Fallback Data)
+const DEFAULT_MOVIES = [
+    {
+        id: "1",
+        name: "Kantara: Chapter 1",
+        rating: "9.2",
+        banner: "https://via.placeholder.com/300x400/111/ff1744?text=Kantara+Chapter+1",
+        link: "",
+        trending: "YES"
+    },
+    {
+        id: "2",
+        name: "Pushpa 2: The Rule",
+        rating: "8.9",
+        banner: "https://via.placeholder.com/300x400/111/ff1744?text=Pushpa+2",
+        link: "https://example.com/download/pushpa2",
+        trending: "YES"
+    }
+];
+
+// Seed localStorage if empty or invalid
+function initDatabase() {
+    try {
+        const raw = localStorage.getItem("BADGE_MOVIES_DB");
+        if (!raw || JSON.parse(raw).length === 0) {
+            localStorage.setItem("BADGE_MOVIES_DB", JSON.stringify(DEFAULT_MOVIES));
+        }
+    } catch (e) {
+        localStorage.setItem("BADGE_MOVIES_DB", JSON.stringify(DEFAULT_MOVIES));
+    }
+}
+
 function setFilter(type, btn) {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
@@ -78,15 +110,22 @@ function setFilter(type, btn) {
 }
 
 function filterMovies() {
-    const db = JSON.parse(localStorage.getItem("BADGE_MOVIES_DB")) || [];
+    initDatabase();
+    let db = [];
+    try {
+        db = JSON.parse(localStorage.getItem("BADGE_MOVIES_DB")) || [];
+    } catch (e) {
+        db = DEFAULT_MOVIES;
+    }
+
     const query = document.getElementById("searchInput").value.toLowerCase().trim();
     
     const filtered = db.filter(m => {
-        const matchesQuery = m.name.toLowerCase().includes(query);
+        const matchesQuery = m.name ? m.name.toLowerCase().includes(query) : false;
         const isUpcoming = !m.link || m.link.trim() === "";
         
-        if(currentFilter === 'TRENDING') return matchesQuery && m.trending === 'YES';
-        if(currentFilter === 'UPCOMING') return matchesQuery && isUpcoming;
+        if (currentFilter === 'TRENDING') return matchesQuery && m.trending === 'YES';
+        if (currentFilter === 'UPCOMING') return matchesQuery && isUpcoming;
         return matchesQuery;
     });
 
@@ -97,7 +136,7 @@ function renderGrid(movies) {
     const grid = document.getElementById("movieGrid");
     grid.innerHTML = "";
 
-    if(movies.length === 0) {
+    if (movies.length === 0) {
         grid.innerHTML = `<div class="empty-msg">No movies found matching criteria.</div>`;
         return;
     }
@@ -112,17 +151,24 @@ function renderGrid(movies) {
             <div class="movie-card">
                 <div class="poster-wrapper">
                     ${m.trending === 'YES' ? '<div class="badge-trend">🔥 TRENDING</div>' : ''}
-                    <div class="badge-rating">⭐ ${m.rating}</div>
-                    <img src="${m.banner}" alt="${m.name}" onerror="this.src='https://via.placeholder.com/300x400?text=No+Poster'">
+                    <div class="badge-rating">⭐ ${m.rating || 'N/A'}</div>
+                    <img src="${m.banner || 'https://via.placeholder.com/300x400?text=No+Poster'}" alt="${m.name || 'Movie'}" onerror="this.src='https://via.placeholder.com/300x400?text=No+Poster'">
                 </div>
                 <div class="card-details">
-                    <div class="movie-title">${m.name}</div>
+                    <div class="movie-title">${m.name || 'Untitled'}</div>
                     ${actionBtn}
                 </div>
             </div>
         `;
     });
 }
+
+// Auto sync grid if changes are made in Admin panel via another tab
+window.addEventListener('storage', (e) => {
+    if (e.key === 'BADGE_MOVIES_DB') {
+        filterMovies();
+    }
+});
 
 filterMovies();
 </script>
