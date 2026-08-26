@@ -3,174 +3,189 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BADGE — Movies Library</title>
+<title>BADGE — Watch & Download Live Movies</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Space+Grotesk:wght@700;900&display=swap" rel="stylesheet">
 <style>
-:root { --bg: #040405; --card: #0d0d10; --red: #ff1744; --line: rgba(255,255,255,0.08); }
+:root { --bg: #050505; --card: #0d0d11; --red: #ff1744; --line: rgba(255,255,255,0.08); }
 * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter', sans-serif; }
-body { background: var(--bg); color: #fff; min-height: 100vh; padding-bottom: 60px; }
+body { background: var(--bg); color: #fff; min-height: 100vh; padding: 20px 15px; }
 
-header { padding: 25px 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); background: rgba(4,4,5,0.8); backdrop-filter: blur(20px); position: sticky; top:0; z-index:100; }
-.logo { font-family: 'Space Grotesk'; font-size: 24px; font-weight: 900; text-decoration:none; color:#fff; }
-.logo span { color: var(--red); }
-.back-btn { color: #888; text-decoration: none; font-size: 11px; font-weight: 800; letter-spacing:1px; transition:0.3s; }
-.back-btn:hover { color: #fff; }
+.container { max-width: 1200px; margin: 0 auto; }
 
-.container { width: min(1200px, 90%); margin: 40px auto; }
-.title-area { display:flex; justify-content:space-between; align-items:center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
-.title { font-family: 'Space Grotesk'; font-size: 36px; }
+header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 20px; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; color: var(--red); display: flex; align-items: center; gap: 10px; }
+.movie-count-badge { background: rgba(255,23,68,0.15); color: var(--red); font-size: 11px; padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(255,23,68,0.3); font-family: 'Inter', sans-serif; }
 
-.controls-bar { display: flex; gap: 12px; margin-bottom: 30px; flex-wrap: wrap; }
-.search-input { flex: 1; min-width: 250px; padding: 12px 18px; background: var(--card); border: 1px solid var(--line); border-radius: 30px; color: #fff; font-size: 12px; outline: none; }
-.search-input:focus { border-color: var(--red); }
+/* Control Panel: Search & Filter Tabs */
+.controls-bar { display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px; }
+@media(min-width: 768px) {
+    .controls-bar { flex-direction: row; justify-content: space-between; align-items: center; }
+}
 
-.filter-btn { padding: 10px 18px; background: var(--card); border: 1px solid var(--line); border-radius: 30px; color: #aaa; font-size: 10px; font-weight: 800; cursor: pointer; transition: 0.3s; }
-.filter-btn.active, .filter-btn:hover { background: var(--red); color: #fff; border-color: var(--red); }
+.search-box { position: relative; width: 100%; max-width: 400px; }
+.search-box input { width: 100%; padding: 12px 18px 12px 42px; background: var(--card); border: 1px solid var(--line); border-radius: 30px; color: #fff; font-size: 13px; outline: none; transition: 0.3s; }
+.search-box input:focus { border-color: var(--red); box-shadow: 0 0 15px rgba(255,23,68,0.2); }
+.search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #666; font-size: 14px; }
 
-.movie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
-.movie-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; transition: 0.3s; position: relative; }
-.movie-card:hover { border-color: rgba(255,23,68,0.4); transform: translateY(-5px); }
-.poster-wrapper { width: 100%; height: 310px; position: relative; overflow: hidden; background:#111; }
-.poster-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+.filter-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; }
+.tab-btn { background: var(--card); border: 1px solid var(--line); color: #888; padding: 8px 16px; border-radius: 20px; font-size: 11px; font-weight: 800; cursor: pointer; transition: 0.3s; white-space: nowrap; text-transform: uppercase; }
+.tab-btn.active, .tab-btn:hover { background: var(--red); color: #fff; border-color: var(--red); }
 
-.badge-trend { position: absolute; top: 10px; left: 10px; background: var(--red); color: #fff; font-size: 8px; font-weight: 900; padding: 4px 8px; border-radius: 20px; text-transform: uppercase; }
-.badge-rating { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); color: #ffd43b; font-size: 9px; font-weight: 800; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); }
+/* Movie Grid System */
+.movie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 20px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; transition: 0.3s; position: relative; display: flex; flex-direction: column; }
+.card:hover { transform: translateY(-6px); border-color: var(--red); box-shadow: 0 10px 25px rgba(255,23,68,0.15); }
+.poster-wrapper { position: relative; width: 100%; height: 240px; background: #111; overflow: hidden; }
+.poster { width: 100%; height: 100%; object-fit: cover; transition: 0.4s; }
+.card:hover .poster { transform: scale(1.05); }
 
-.card-details { padding: 15px; }
-.movie-title { font-size: 15px; font-weight: 800; margin-bottom: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.download-btn { display: block; width: 100%; text-align: center; background: var(--red); color: #fff; text-decoration: none; padding: 10px; border-radius: 8px; font-size: 10px; font-weight: 900; letter-spacing: 1px; transition: 0.2s; }
-.download-btn.upcoming { background: #222; color: #ffd43b; border: 1px solid rgba(255,212,59,0.3); }
-.download-btn:hover { opacity: 0.9; }
+.badge-trend { position: absolute; top: 10px; right: 10px; background: var(--red); color: #fff; font-size: 8px; font-weight: 900; padding: 4px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+.rating-tag { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); color: #fff; font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); }
 
-.empty-msg { text-align:center; padding:60px 0; color:#555; font-size:12px; width:100%; grid-column:1 / -1; }
+.info { padding: 14px; display: flex; flex-direction: column; flex-grow: 1; justify-content: space-between; }
+.title { font-size: 13px; font-weight: 800; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+.status-text { font-size: 10px; font-weight: 700; color: #777; margin-bottom: 12px; display: flex; align-items: center; gap: 5px; }
+
+.btn-dl { display: block; width: 100%; text-align: center; background: #fff; color: #000; text-decoration: none; padding: 10px; border-radius: 8px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; transition: 0.2s; }
+.btn-dl:hover { background: var(--red); color: #fff; }
+.btn-dl.upcoming { background: #181820; color: #555; pointer-events: none; border: 1px solid var(--line); }
+
+.no-results { grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #555; font-size: 13px; }
 </style>
 </head>
 <body>
 
-<header>
-    <a href="index.html" class="logo">BADGE<span>.</span></a>
-    <a href="index.html" class="back-btn">← BACK TO HOME</a>
-</header>
-
 <div class="container">
-    <div class="title-area">
-        <h1 class="title">MOVIES HUB</h1>
-    </div>
+    <header>
+        <h1>
+            BADGE MOVIES
+            <span class="movie-count-badge" id="totalCount">0 MOVIES</span>
+        </h1>
+        <a href="admin.html" style="color:#666; font-size:11px; text-decoration:none; border:1px solid var(--line); padding:6px 12px; border-radius:20px;">Admin Access ↗</a>
+    </header>
 
     <div class="controls-bar">
-        <input type="text" id="searchInput" class="search-input" placeholder="Search movies by name..." oninput="filterMovies()">
-        <button class="filter-btn active" onclick="setFilter('ALL', this)">ALL</button>
-        <button class="filter-btn" onclick="setFilter('TRENDING', this)">🔥 TRENDING</button>
-        <button class="filter-btn" onclick="setFilter('UPCOMING', this)">⏳ UPCOMING</button>
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="Search movies by title...">
+        </div>
+
+        <div class="filter-tabs">
+            <button class="tab-btn active" data-filter="ALL">All Movies</button>
+            <button class="tab-btn" data-filter="TRENDING">🔥 Trending</button>
+            <button class="tab-btn" data-filter="READY">⚡ Released</button>
+            <button class="tab-btn" data-filter="UPCOMING">⏳ Upcoming</button>
+        </div>
     </div>
 
-    <div class="movie-grid" id="movieGrid"></div>
+    <div class="movie-grid" id="publicMovieList">
+        <div class="no-results">Connecting to cloud database...</div>
+    </div>
 </div>
 
-<script>
-let currentFilter = 'ALL';
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-// Default Movies Array (Fallback Data)
-const DEFAULT_MOVIES = [
-    {
-        id: "1",
-        name: "Kantara: Chapter 1",
-        rating: "9.2",
-        banner: "https://via.placeholder.com/300x400/111/ff1744?text=Kantara+Chapter+1",
-        link: "",
-        trending: "YES"
-    },
-    {
-        id: "2",
-        name: "Pushpa 2: The Rule",
-        rating: "8.9",
-        banner: "https://via.placeholder.com/300x400/111/ff1744?text=Pushpa+2",
-        link: "https://example.com/download/pushpa2",
-        trending: "YES"
-    }
-];
+  const firebaseConfig = {
+    apiKey: "AIzaSyBfGylU2R4GTtsgqJsbDl-Y2e8i-a2jbEE",
+    authDomain: "badger-e5c9f.firebaseapp.com",
+    databaseURL: "https://badger-e5c9f-default-rtdb.firebaseio.com",
+    projectId: "badger-e5c9f",
+    storageBucket: "badger-e5c9f.firebasestorage.app",
+    messagingSenderId: "483650469817",
+    appId: "1:483650469817:web:5818b00d1732b8baee8068",
+    measurementId: "G-EXEE25B743"
+  };
 
-// Seed localStorage if empty or invalid
-function initDatabase() {
-    try {
-        const raw = localStorage.getItem("BADGE_MOVIES_DB");
-        if (!raw || JSON.parse(raw).length === 0) {
-            localStorage.setItem("BADGE_MOVIES_DB", JSON.stringify(DEFAULT_MOVIES));
-        }
-    } catch (e) {
-        localStorage.setItem("BADGE_MOVIES_DB", JSON.stringify(DEFAULT_MOVIES));
-    }
-}
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-function setFilter(type, btn) {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentFilter = type;
-    filterMovies();
-}
+  let allMoviesData = [];
+  let currentFilter = "ALL";
+  let searchQuery = "";
 
-function filterMovies() {
-    initDatabase();
-    let db = [];
-    try {
-        db = JSON.parse(localStorage.getItem("BADGE_MOVIES_DB")) || [];
-    } catch (e) {
-        db = DEFAULT_MOVIES;
-    }
+  const moviesRef = ref(db, 'movies');
 
-    const query = document.getElementById("searchInput").value.toLowerCase().trim();
-    
-    const filtered = db.filter(m => {
-        const matchesQuery = m.name ? m.name.toLowerCase().includes(query) : false;
-        const isUpcoming = !m.link || m.link.trim() === "";
-        
-        if (currentFilter === 'TRENDING') return matchesQuery && m.trending === 'YES';
-        if (currentFilter === 'UPCOMING') return matchesQuery && isUpcoming;
-        return matchesQuery;
-    });
+  onValue(moviesRef, (snapshot) => {
+      const data = snapshot.val();
+      allMoviesData = [];
 
-    renderGrid(filtered);
-}
+      if (data) {
+          Object.keys(data).reverse().forEach(key => {
+              allMoviesData.push({ id: key, ...data[key] });
+          });
+      }
 
-function renderGrid(movies) {
-    const grid = document.getElementById("movieGrid");
-    grid.innerHTML = "";
+      document.getElementById("totalCount").textContent = `${allMoviesData.length} MOVIES`;
+      renderMovies();
+  });
 
-    if (movies.length === 0) {
-        grid.innerHTML = `<div class="empty-msg">No movies found matching criteria.</div>`;
-        return;
-    }
+  function renderMovies() {
+      const listContainer = document.getElementById("publicMovieList");
+      listContainer.innerHTML = "";
 
-    movies.forEach(m => {
-        const isUpcoming = !m.link || m.link.trim() === "";
-        const actionBtn = isUpcoming 
-            ? `<a href="exp.html?id=${m.id}" class="download-btn upcoming">UPCOMING ⏳</a>`
-            : `<a href="${m.link}" target="_blank" class="download-btn">DOWNLOAD NOW ⚡</a>`;
+      const filtered = allMoviesData.filter(m => {
+          const isUpcoming = !m.link || m.link.trim() === "";
+          
+          // Filter logic
+          let matchesFilter = true;
+          if (currentFilter === "TRENDING") matchesFilter = m.trending === "YES";
+          if (currentFilter === "READY") matchesFilter = !isUpcoming;
+          if (currentFilter === "UPCOMING") matchesFilter = isUpcoming;
 
-        grid.innerHTML += `
-            <div class="movie-card">
-                <div class="poster-wrapper">
-                    ${m.trending === 'YES' ? '<div class="badge-trend">🔥 TRENDING</div>' : ''}
-                    <div class="badge-rating">⭐ ${m.rating || 'N/A'}</div>
-                    <img src="${m.banner || 'https://via.placeholder.com/300x400?text=No+Poster'}" alt="${m.name || 'Movie'}" onerror="this.src='https://via.placeholder.com/300x400?text=No+Poster'">
-                </div>
-                <div class="card-details">
-                    <div class="movie-title">${m.name || 'Untitled'}</div>
-                    ${actionBtn}
-                </div>
-            </div>
-        `;
-    });
-}
+          // Search logic
+          const matchesSearch = m.name.toLowerCase().includes(searchQuery.toLowerCase());
 
-// Auto sync grid if changes are made in Admin panel via another tab
-window.addEventListener('storage', (e) => {
-    if (e.key === 'BADGE_MOVIES_DB') {
-        filterMovies();
-    }
-});
+          return matchesFilter && matchesSearch;
+      });
 
-filterMovies();
+      if (filtered.length === 0) {
+          listContainer.innerHTML = `<div class="no-results">❌ No movies found matching your search.</div>`;
+          return;
+      }
+
+      filtered.forEach(m => {
+          const isUpcoming = !m.link || m.link.trim() === "";
+          const card = document.createElement("div");
+          card.className = "card";
+          
+          card.innerHTML = `
+              <div class="poster-wrapper">
+                  ${m.trending === 'YES' ? '<div class="badge-trend">🔥 TRENDING</div>' : ''}
+                  <img src="${m.banner}" class="poster" onerror="this.src='https://dummyimage.com/180x240/151518/888888.png&text=No+Poster'">
+                  <div class="rating-tag">⭐ ${m.rating}</div>
+              </div>
+              <div class="info">
+                  <div class="title"></div>
+                  <div class="status-text">
+                      ${isUpcoming ? '⏳ UPCOMING DROP' : '⚡ READY TO WATCH'}
+                  </div>
+                  ${isUpcoming 
+                      ? '<a href="#" class="btn-dl upcoming">COMING SOON</a>' 
+                      : `<a href="${m.link}" target="_blank" class="btn-dl">DOWNLOAD / WATCH</a>`}
+              </div>
+          `;
+
+          card.querySelector(".title").textContent = m.name;
+          listContainer.appendChild(card);
+      });
+  }
+
+  // Event Listeners for Search & Tabs
+  document.getElementById("searchInput").addEventListener("input", (e) => {
+      searchQuery = e.target.value.trim();
+      renderMovies();
+  });
+
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+          document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          currentFilter = btn.dataset.filter;
+          renderMovies();
+      });
+  });
 </script>
 </body>
 </html>
