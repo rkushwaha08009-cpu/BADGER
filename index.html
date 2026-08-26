@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#050505">
+<title>BADGE — MAX Cinema Hub</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --bg:#040405;
+    --card:#0d0d10;
+    --red:#ff1744;
+    --line:rgba(255,255,255,.09);
+    --green:#22e58a;
+    --yellow:#ffd43b;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    background:var(--bg);
+    color:#fff;
+    font-family:Inter,sans-serif;
+    overflow-x:hidden;
+}
+
+body:before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:-5;
+    background:
+        radial-gradient(circle at 10% 10%,rgba(255,0,55,.14),transparent 25%),
+        radial-gradient(circle at 90% 25%,rgba(255,0,55,.08),transparent 25%),
+        radial-gradient(circle at 50% 90%,rgba(255,0,55,.07),transparent 30%);
+}
+
+.loader{
+    position:fixed;
+    inset:0;
+    background:#030303;
+    z-index:10000;
+    display:grid;
+    place-items:center;
+    transition:1s;
+}
+
+.loader.hide{
+    opacity:0;
+    visibility:hidden;
+}
+
+.loader-logo{
+    font-family:"Space Grotesk";
+    font-size:70px;
+    font-weight:900;
+    letter-spacing:-5px;
+}
+
+.loader-logo span{
+    color:var(--red);
+}
+
+.loader-line{
+    width:180px;
+    height:2px;
+    background:#222;
+    margin:25px auto 0;
+    overflow:hidden;
+}
+
+.loader-line:after{
+    content:"";
+    display:block;
+    width:50%;
+    height:100%;
+    background:var(--red);
+    animation:load 1s infinite;
+}
+
+@keyframes load{
+    from{transform:translateX(-100%)}
+    to{transform:translateX(300%)}
+}
+
+#particles{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:-2;
+}
+
+.ticker{
+    height:34px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--red);
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    overflow:hidden;
+    white-space:nowrap;
+}
+
+.ticker-track{
+    animation:ticker 18s linear infinite;
+}
+
+@keyframes ticker{
+    from{transform:translateX(0)}
+    to{transform:translateX(-30%)}
+}
+
+nav{
+    height:78px;
+    position:sticky;
+    top:0;
+    z-index:500;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 5%;
+    background:rgba(4,4,5,.76);
+    backdrop-filter:blur(22px);
+    border-bottom:1px solid var(--line);
+}
+
+.logo{
+    font-family:"Space Grotesk";
+    font-size:28px;
+    font-weight:900;
+    letter-spacing:-2px;
+}
+
+.logo span{
+    color:var(--red);
+}
+
+.nav-center{
+    display:flex;
+    align-items:center;
+    gap:26px;
+}
+
+.nav-center a{
+    color:#777;
+    text-decoration:none;
+    font-size:11px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    transition:.3s;
+}
+
+.nav-center a:hover{
+    color:#fff;
+}
+
+.nav-center a.movies-link{
+    color:var(--red);
+    font-weight:900;
+}
+
+.nav-right{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.icon-btn{
+    width:38px;
+    height:38px;
+    display:grid;
+    place-items:center;
+    border:1px solid var(--line);
+    background:#0b0b0d;
+    color:#fff;
+    border-radius:50%;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.icon-btn:hover{
+    border-color:var(--red);
+    color:var(--red);
+}
+
+.follow{
+    padding:10px 16px;
+    border-radius:30px;
+    background:#fff;
+    color:#000;
+    text-decoration:none;
+    font-size:10px;
+    font-weight:900;
+    transition:.3s;
+}
+
+.follow:hover{
+    background:var(--red);
+    color:#fff;
+}
+
+.hero{
+    min-height:650px;
+    position:relative;
+    display:flex;
+    align-items:center;
+    overflow:hidden;
+}
+
+.hero-slide{
+    position:absolute;
+    inset:0;
+    opacity:0;
+    transition:1s ease;
+}
+
+.hero-slide.active{
+    opacity:1;
+}
+
+.hero-bg{
+    position:absolute;
+    inset:0;
+}
+
+.hero-bg.one{
+    background:
+        linear-gradient(90deg,#040405 10%,rgba(4,4,5,.65) 50%,rgba(4,4,5,.1)),
+        radial-gradient(circle at 75% 45%,#691021,#080808 50%);
+}
+
+.hero-bg.two{
+    background:
+        linear-gradient(90deg,#040405 10%,rgba(4,4,5,.7) 50%,rgba(4,4,5,.1)),
+        radial-gradient(circle at 78% 40%,#47200d,#070707 50%);
+}
+
+.hero-content{
+    width:min(1200px,90%);
+    margin:auto;
+    position:relative;
+    z-index:2;
+    padding-top:40px;
+}
+
+.hero-meta{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:20px;
+}
+
+.live{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    color:#aaa;
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+}
+
+.live i{
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 12px var(--green);
+}
+
+.hero-tag{
+    color:var(--red);
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:2px;
+}
+
+.hero h1{
+    max-width:800px;
+    font-family:"Space Grotesk";
+    font-size:clamp(55px,9vw,120px);
+    line-height:.82;
+    letter-spacing:-7px;
+    text-transform:uppercase;
+}
+
+.hero h1 span{
+    color:var(--red);
+    text-shadow:0 0 60px rgba(255,0,55,.3);
+}
+
+.hero-sub{
+    max-width:520px;
+    margin-top:25px;
+    color:#8c8c94;
+    font-size:14px;
+    line-height:1.7;
+}
+
+.hero-actions{
+    display:flex;
+    gap:10px;
+    margin-top:28px;
+}
+
+.btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    border-radius:30px;
+    padding:13px 20px;
+    text-decoration:none;
+    font-size:10px;
+    font-weight:900;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.btn-red{
+    color:#fff;
+    background:var(--red);
+    box-shadow:0 12px 35px rgba(255,0,55,.25);
+}
+
+.btn-red:hover{
+    transform:translateY(-3px);
+}
+
+.btn-dark{
+    color:#fff;
+    border:1px solid var(--line);
+    background:rgba(255,255,255,.04);
+}
+
+.btn-dark:hover{
+    background:#fff;
+    color:#000;
+}
+
+.hero-dots{
+    position:absolute;
+    bottom:40px;
+    left:5%;
+    display:flex;
+    gap:7px;
+    z-index:5;
+}
+
+.hero-dot{
+    width:25px;
+    height:3px;
+    background:#444;
+    border:0;
+    cursor:pointer;
+}
+
+.hero-dot.active{
+    background:var(--red);
+}
+
+.container{
+    width:min(1200px,90%);
+    margin:auto;
+}
+
+.section{
+    padding:85px 0 0;
+}
+
+.section-head{
+    display:flex;
+    align-items:end;
+    justify-content:space-between;
+    margin-bottom:25px;
+}
+
+.kicker{
+    color:var(--red);
+    font-size:9px;
+    font-weight:900;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    margin-bottom:7px;
+}
+
+.section-title{
+    font-family:"Space Grotesk";
+    font-size:clamp(30px,4vw,48px);
+    letter-spacing:-2.5px;
+    font-weight:800;
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    border:1px solid var(--line);
+    border-radius:18px;
+    overflow:hidden;
+    background:#0a0a0c;
+}
+
+.stat{
+    padding:27px;
+    border-right:1px solid var(--line);
+}
+
+.stat:last-child{
+    border-right:0;
+}
+
+.stat-number{
+    font-family:"Space Grotesk";
+    font-size:35px;
+    font-weight:800;
+}
+
+.stat-number span{
+    color:var(--red);
+}
+
+.stat-label{
+    color:#555;
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    margin-top:5px;
+}
+
+.analytics{
+    display:grid;
+    grid-template-columns:1.6fr .8fr;
+    gap:18px;
+}
+
+.panel{
+    border:1px solid var(--line);
+    background:#0a0a0c;
+    border-radius:18px;
+    padding:25px;
+}
+
+.panel-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:25px;
+}
+
+.panel-title{
+    font-family:"Space Grotesk";
+    font-size:18px;
+    font-weight:800;
+}
+
+.chart{
+    height:230px;
+    display:flex;
+    align-items:end;
+    gap:12px;
+    padding-top:20px;
+    border-bottom:1px solid #222;
+}
+
+.bar{
+    flex:1;
+    position:relative;
+    height:var(--h);
+    min-width:12px;
+    border-radius:6px 6px 0 0;
+    background:linear-gradient(180deg,var(--red),#5b081b);
+    transition:.5s;
+}
+
+.bar-label{
+    position:absolute;
+    bottom:-23px;
+    width:100%;
+    text-align:center;
+    color:#555;
+    font-size:8px;
+}
+
+.bar-value{
+    position:absolute;
+    top:-18px;
+    width:100%;
+    text-align:center;
+    color:#888;
+    font-size:8px;
+}
+
+.rank-list{
+    display:grid;
+    gap:13px;
+}
+
+.rank{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.rank-no{
+    width:25px;
+    color:#444;
+    font-size:10px;
+    font-weight:900;
+}
+
+.rank-info{
+    flex:1;
+}
+
+.rank-name{
+    font-size:10px;
+    font-weight:800;
+}
+
+.rank-line{
+    height:4px;
+    background:#1b1b1e;
+    border-radius:5px;
+    margin-top:6px;
+    overflow:hidden;
+}
+
+.rank-line span{
+    display:block;
+    height:100%;
+    background:var(--red);
+}
+
+.rank-score{
+    color:var(--yellow);
+    font-size:10px;
+    font-weight:900;
+}
+
+footer{
+    width:min(1200px,90%);
+    margin:90px auto 0;
+    padding:40px 0 130px;
+    border-top:1px solid var(--line);
+    display:flex;
+    justify-content:space-between;
+    color:#444;
+    font-size:9px;
+    letter-spacing:1px;
+}
+
+.footer-logo{
+    color:#fff;
+    font-weight:900;
+}
+
+.footer-logo span{
+    color:var(--red);
+}
+
+.floating{
+    position:fixed;
+    z-index:800;
+    bottom:18px;
+    left:50%;
+    transform:translateX(-50%);
+    width:min(590px,92%);
+    padding:8px 9px 8px 17px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:rgba(13,13,15,.86);
+    border:1px solid rgba(255,23,68,.3);
+    backdrop-filter:blur(25px);
+    border-radius:50px;
+}
+
+.floating-left{
+    display:flex;
+    align-items:center;
+    gap:9px;
+}
+
+.sound-dot{
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:var(--red);
+    box-shadow:0 0 15px var(--red);
+}
+
+.floating-text{
+    color:#999;
+    font-size:9px;
+    font-weight:700;
+}
+
+.floating-text b{
+    color:#fff;
+}
+
+.floating a{
+    border:0;
+    background:var(--red);
+    color:#fff;
+    padding:11px 18px;
+    border-radius:30px;
+    font-size:9px;
+    font-weight:900;
+    text-decoration:none;
+}
+
+.mobile-nav{
+    display:none;
+}
+
+@media(max-width:900px){
+    .nav-center{ display:none; }
+    .analytics{ grid-template-columns:1fr; }
+}
+
+@media(max-width:650px){
+    nav{ height:68px; }
+    .nav-right .icon-btn{ display:none; }
+    .hero h1{ font-size:clamp(58px,17vw,95px); }
+    .stats{ grid-template-columns:repeat(2,1fr); }
+    footer{ flex-direction:column; gap:12px; }
+
+    .mobile-nav{
+        position:fixed;
+        display:flex;
+        bottom:0;
+        left:0;
+        right:0;
+        z-index:700;
+        height:62px;
+        background:rgba(7,7,8,.92);
+        backdrop-filter:blur(20px);
+        border-top:1px solid var(--line);
+        justify-content:space-around;
+        align-items:center;
+    }
+
+    .mobile-nav a{
+        color:#555;
+        text-decoration:none;
+        text-align:center;
+        font-size:17px;
+    }
+
+    .mobile-nav span{
+        display:block;
+        font-size:7px;
+        margin-top:2px;
+        font-weight:800;
+    }
+
+    .mobile-nav a.active{ color:var(--red); }
+    .floating{ bottom:72px; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="loader" id="loader">
+    <div class="loader-inner">
+        <div class="loader-logo">BADGE<span>.</span></div>
+        <div class="loader-line"></div>
+    </div>
+</div>
+
+<canvas id="particles"></canvas>
+
+<div class="ticker">
+    <div class="ticker-track">
+        ⚡ BADGE MEDIA • CINEMA • AURA • MASS ENERGY • EXCLUSIVE EDITS • CINEMATIC IMPACT • BADGE MEDIA • CINEMA • AURA •
+    </div>
+</div>
+
+<nav>
+    <div class="logo">BADGE<span>.</span></div>
+
+    <div class="nav-center">
+        <a href="#home">Home</a>
+        <a href="movies.html" class="movies-link">MOVIES 🎬</a>
+        <a href="#analytics">Analytics</a>
+    </div>
+
+    <div class="nav-right">
+        <button class="icon-btn" onclick="toggleAura()" title="Aura Mode">✦</button>
+        <a href="movies.html" class="follow" style="background:var(--red); color:#fff;">WATCH MOVIES ↗</a>
+    </div>
+</nav>
+
+<section class="hero" id="home">
+
+    <div class="hero-slide active">
+        <div class="hero-bg one"></div>
+        <div class="hero-content">
+            <div class="hero-meta">
+                <div class="live"><i></i> LIVE ARCHIVE</div>
+                <div class="hero-tag">01 / AURA HUB</div>
+            </div>
+
+            <h1>VISUAL<br><span>AURA.</span></h1>
+            <p class="hero-sub">Cinema breakdowns, hero elevations, mass moments and exclusive edits designed to hit different.</p>
+
+            <div class="hero-actions">
+                <a href="movies.html" class="btn btn-red">BROWSE MOVIES 🎬</a>
+                <a href="https://www.instagram.com/badger.379798" target="_blank" class="btn btn-dark">INSTAGRAM ↗</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="hero-slide">
+        <div class="hero-bg two"></div>
+        <div class="hero-content">
+            <div class="hero-meta">
+                <div class="live"><i></i> BADGE ORIGINAL</div>
+                <div class="hero-tag">02 / MASS ENERGY</div>
+            </div>
+
+            <h1>PURE<br><span>MASS.</span></h1>
+            <p class="hero-sub">Theatre energy, high-octane background scores and mass cinematic moments packed into one platform.</p>
+
+            <div class="hero-actions">
+                <a href="movies.html" class="btn btn-red">WATCH MOVIES ↗</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="hero-dots">
+        <button class="hero-dot active" onclick="slideTo(0)"></button>
+        <button class="hero-dot" onclick="slideTo(1)"></button>
+    </div>
+
+</section>
+
+<section class="section container">
+
+    <div class="section-head">
+        <div>
+            <div class="kicker">01 / Numbers</div>
+            <h2 class="section-title">BADGE Metrics</h2>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-number"><span class="counter" data-target="47">0</span>+</div>
+            <div class="stat-label">Cinema Stories</div>
+        </div>
+        <div class="stat">
+            <div class="stat-number"><span class="counter" data-target="128">0</span>K</div>
+            <div class="stat-label">Views Tracked</div>
+        </div>
+        <div class="stat">
+            <div class="stat-number"><span class="counter" data-target="92">0</span>%</div>
+            <div class="stat-label">Aura Index</div>
+        </div>
+        <div class="stat">
+            <div class="stat-number">∞</div>
+            <div class="stat-label">Mass Energy</div>
+        </div>
+    </div>
+
+</section>
+
+<section class="section container" id="analytics">
+
+    <div class="section-head">
+        <div>
+            <div class="kicker">02 / Analytics</div>
+            <h2 class="section-title">Audience Engagement</h2>
+        </div>
+    </div>
+
+    <div class="analytics">
+        <div class="panel">
+            <div class="panel-head">
+                <div class="panel-title">Weekly Edit Reach</div>
+            </div>
+
+            <div class="chart">
+                <div class="bar" style="--h:35%"><span class="bar-value">18</span><span class="bar-label">MON</span></div>
+                <div class="bar" style="--h:48%"><span class="bar-value">25</span><span class="bar-label">TUE</span></div>
+                <div class="bar" style="--h:42%"><span class="bar-value">22</span><span class="bar-label">WED</span></div>
+                <div class="bar" style="--h:65%"><span class="bar-value">34</span><span class="bar-label">THU</span></div>
+                <div class="bar" style="--h:75%"><span class="bar-value">41</span><span class="bar-label">FRI</span></div>
+                <div class="bar" style="--h:92%"><span class="bar-value">57</span><span class="bar-label">SAT</span></div>
+                <div class="bar" style="--h:82%"><span class="bar-value">51</span><span class="bar-label">SUN</span></div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-head">
+                <div class="panel-title">Category Ranking</div>
+            </div>
+
+            <div class="rank-list">
+                <div class="rank">
+                    <div class="rank-no">01</div>
+                    <div class="rank-info">
+                        <div class="rank-name">HERO ELEVATION</div>
+                        <div class="rank-line"><span style="width:98%"></span></div>
+                    </div>
+                    <div class="rank-score">98</div>
+                </div>
+
+                <div class="rank">
+                    <div class="rank-no">02</div>
+                    <div class="rank-info">
+                        <div class="rank-name">MASS ATTITUDE</div>
+                        <div class="rank-line"><span style="width:92%"></span></div>
+                    </div>
+                    <div class="rank-score">92</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</section>
+
+<footer>
+    <div>© 2026 <span class="footer-logo">BADGE<span>.</span></span></div>
+    <div>CINEMA / CULTURE / ANALYTICS / AURA</div>
+</footer>
+
+<div class="floating">
+    <div class="floating-left">
+        <span class="sound-dot"></span>
+        <div class="floating-text">BADGE <b>MEDIA HUB</b> • LIVE</div>
+    </div>
+    <a href="movies.html">EXPLORE MOVIES 🎬</a>
+</div>
+
+<div class="mobile-nav">
+    <a class="active" href="index.html">◉<span>HOME</span></a>
+    <a href="movies.html">🎬<span>MOVIES</span></a>
+    <a href="admin.html">🔒<span>ADMIN</span></a>
+</div>
+
+<script>
+window.addEventListener("load",()=>{
+    setTimeout(()=>{
+        document.getElementById("loader").classList.add("hide");
+    },700);
+});
+
+let currentSlide=0;
+const slides=document.querySelectorAll(".hero-slide");
+const dots=document.querySelectorAll(".hero-dot");
+
+function slideTo(index){
+    slides[currentSlide].classList.remove("active");
+    dots[currentSlide].classList.remove("active");
+    currentSlide=index;
+    slides[currentSlide].classList.add("active");
+    dots[currentSlide].classList.add("active");
+}
+
+setInterval(()=>{
+    slideTo((currentSlide+1)%slides.length);
+},6000);
+
+function toggleAura(){
+    document.body.classList.toggle("aura-mode");
+    if(document.body.classList.contains("aura-mode")){
+        document.documentElement.style.setProperty("--red","#ff003c");
+    }else{
+        document.documentElement.style.setProperty("--red","#ff1744");
+    }
+}
+
+const counters=document.querySelectorAll(".counter");
+counters.forEach(counter=>{
+    const target=Number(counter.dataset.target);
+    let value=0;
+    const step=Math.max(1,Math.ceil(target/70));
+    const timer=setInterval(()=>{
+        value+=step;
+        if(value>=target){
+            value=target;
+            clearInterval(timer);
+        }
+        counter.innerText=value;
+    },20);
+});
+
+const canvas=document.getElementById("particles");
+const ctx=canvas.getContext("2d");
+let particles=[];
+
+function resizeCanvas(){
+    canvas.width=innerWidth;
+    canvas.height=innerHeight;
+}
+resizeCanvas();
+window.addEventListener("resize",resizeCanvas);
+
+for(let i=0;i<45;i++){
+    particles.push({
+        x:Math.random()*innerWidth,
+        y:Math.random()*innerHeight,
+        r:Math.random()*1.5+.3,
+        vx:(Math.random()-.5)*.25,
+        vy:(Math.random()-.5)*.25,
+        alpha:Math.random()*.45
+    });
+}
+
+function animateParticles(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p=>{
+        p.x+=p.vx;
+        p.y+=p.vy;
+        if(p.x<0)p.x=canvas.width;
+        if(p.x>canvas.width)p.x=0;
+        if(p.y<0)p.y=canvas.height;
+        if(p.y>canvas.height)p.y=0;
+
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        ctx.fillStyle=`rgba(255,23,68,${p.alpha})`;
+        ctx.fill();
+    });
+    requestAnimationFrame(animatePar
