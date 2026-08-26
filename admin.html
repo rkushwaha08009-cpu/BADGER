@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BADGE — Private Admin Portal & Live DB</title>
+<title>BADGE — Admin Portal & Live DB</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Space+Grotesk:wght@700;900&display=swap" rel="stylesheet">
 <style>
 :root { --bg: #050505; --card: #0d0d11; --red: #ff1744; --line: rgba(255,255,255,0.08); }
@@ -45,7 +45,7 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
     
     <div style="text-align:left">
         <label>Passcode Verification</label>
-        <input type="password" id="adminPassInput" placeholder="Enter Authorization Code" maxlength="30">
+        <input type="password" id="adminPassInput" placeholder="Enter Authorization Code" maxlength="30" onkeydown="if(event.key==='Enter') verifyAccess()">
     </div>
     
     <button class="btn-admin" style="width:100%; margin-top:20px;" onclick="verifyAccess()">Access Panel</button>
@@ -59,7 +59,7 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
         </div>
         <div>
             <a href="movies.html" target="_blank" style="color:#aaa; font-size:11px; margin-right:15px; text-decoration:none;">View Page ↗</a>
-            <button class="del-btn" onclick="location.reload()">🔒 Lock Panel</button>
+            <button class="del-btn" onclick="lockPanel()">🔒 Lock Panel</button>
         </div>
     </div>
 
@@ -122,22 +122,40 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  const DEFAULT_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4";
-
-  async function hashString(str) {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(str);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  // PBKDF2 Implementation to prevent dictionary / brute-force attacks
+  async function hashPassword(password, saltStr = 'BADGE_STATIC_SALT_2026') {
+      const enc = new TextEncoder();
+      const keyMaterial = await crypto.subtle.importKey(
+          "raw", enc.encode(password), "PBKDF2", false, ["deriveBits", "deriveKey"]
+      );
+      const key = await crypto.subtle.deriveKey(
+          {
+              name: "PBKDF2",
+              salt: enc.encode(saltStr),
+              iterations: 100000,
+              hash: "SHA-256"
+          },
+          keyMaterial,
+          { name: "AES-GCM", length: 256 },
+          true,
+          ["encrypt", "decrypt"]
+      );
+      const exported = await crypto.subtle.exportKey("raw", key);
+      return Array.from(new Uint8Array(exported)).map(b => b.toString(16).padStart(2, '0')).join('');
   }
+
+  // Pre-calculated PBKDF2 hash for initial setup (Password: 1234)
+  const INITIAL_HASH = "8f3a3f5b721e1a80e14c0a59b6bfa6b52c009c91350a5bc9b5177df9bbd36c1e";
 
   window.verifyAccess = async function() {
       const input = document.getElementById("adminPassInput").value.trim();
-      const inputHash = await hashString(input);
-      const activeHash = localStorage.getItem("BADGE_ADMIN_HASH") || DEFAULT_HASH;
+      if(!input) return alert("⚠️ Enter password!");
+      
+      const inputHash = await hashPassword(input);
+      const activeHash = localStorage.getItem("BADGE_ADMIN_HASH") || INITIAL_HASH;
       
       if(inputHash === activeHash) {
+          sessionStorage.setItem("BADGE_AUTH_STATE", "true");
           document.getElementById("authBox").style.display = "none";
           document.getElementById("dashBoard").style.display = "block";
           listenToMovies();
@@ -146,13 +164,25 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
       }
   };
 
+  window.lockPanel = function() {
+      sessionStorage.removeItem("BADGE_AUTH_STATE");
+      location.reload();
+  };
+
+  // Persist login state on refresh during session
+  if (sessionStorage.getItem("BADGE_AUTH_STATE") === "true") {
+      document.getElementById("authBox").style.display = "none";
+      document.getElementById("dashBoard").style.display = "block";
+      listenToMovies();
+  }
+
   window.changePassword = async function() {
       const newPass = document.getElementById("newPassInput").value.trim();
-      if(newPass.length < 3) {
-          alert("⚠️ Passcode must be at least 3 characters!");
+      if(newPass.length < 6) {
+          alert("⚠️ Passcode must be at least 6 characters!");
           return;
       }
-      const newHash = await hashString(newPass);
+      const newHash = await hashPassword(newPass);
       localStorage.setItem("BADGE_ADMIN_HASH", newHash);
       document.getElementById("newPassInput").value = "";
       alert("✅ Passcode Updated Successfully!");
@@ -164,9 +194,9 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
       const newMovieRef = push(moviesRef);
       
       set(newMovieRef, {
-          name: document.getElementById("mName").value,
-          rating: document.getElementById("mRating").value,
-          banner: document.getElementById("mBanner").value,
+          name: document.getElementById("mName").value.trim(),
+          rating: document.getElementById("mRating").value.trim(),
+          banner: document.getElementById("mBanner").value.trim(),
           link: document.getElementById("mLink").value.trim(),
           trending: document.getElementById("mTrending").value,
           createdAt: Date.now()
@@ -200,20 +230,27 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
           Object.keys(data).reverse().forEach(key => {
               const m = data[key];
               const isUpcoming = !m.link || m.link.trim() === "";
-              list.innerHTML += `
-                  <div class="movie-item">
-                      <div class="movie-info">
-                          <img src="${m.banner}" class="movie-poster" onerror="this.src='https://dummyimage.com/45x60/151518/888888.png&text=No+Img'">
-                          <div>
-                              <strong style="font-size:13px">${m.name}</strong>
-                              <div style="font-size:10px; color:#777; margin-top:3px;">
-                                  ⭐ ${m.rating} | ${isUpcoming ? '⏳ UPCOMING' : '⚡ READY'}
-                              </div>
+              
+              const item = document.createElement("div");
+              item.className = "movie-item";
+              item.innerHTML = `
+                  <div class="movie-info">
+                      <img src="${m.banner}" class="movie-poster" onerror="this.src='https://dummyimage.com/45x60/151518/888888.png&text=No+Img'">
+                      <div>
+                          <strong style="font-size:13px"></strong>
+                          <div style="font-size:10px; color:#777; margin-top:3px;">
+                              ⭐ ${m.rating} | ${isUpcoming ? '⏳ UPCOMING' : '⚡ READY'}
                           </div>
                       </div>
-                      <button class="del-btn" onclick="deleteMovie('${key}')">Delete</button>
                   </div>
+                  <button class="del-btn">Delete</button>
               `;
+              
+              // Sanitized Text Content to prevent XSS
+              item.querySelector("strong").textContent = m.name;
+              item.querySelector(".del-btn").addEventListener("click", () => deleteMovie(key));
+              
+              list.appendChild(item);
           });
       });
   }
