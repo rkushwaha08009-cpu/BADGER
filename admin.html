@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BADGE — Private Admin Portal</title>
+<title>BADGE — Private Admin Portal & Live DB</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Space+Grotesk:wght@700;900&display=swap" rel="stylesheet">
 <style>
 :root { --bg: #050505; --card: #0d0d11; --red: #ff1744; --line: rgba(255,255,255,0.08); }
@@ -55,7 +55,7 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
     <div class="admin-head">
         <div>
             <h1 style="font-family:'Space Grotesk'">BADGE DB CONTROL</h1>
-            <p style="color:#666; font-size:11px">Manage movies, ratings, and security credentials in real-time.</p>
+            <p style="color:#666; font-size:11px">Manage movies, ratings, and cloud storage in real-time.</p>
         </div>
         <div>
             <a href="movies.html" target="_blank" style="color:#aaa; font-size:11px; margin-right:15px; text-decoration:none;">View Page ↗</a>
@@ -96,123 +96,130 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
             </select>
         </div>
         <div style="display:flex; align-items:flex-end;">
-            <button class="btn-admin" style="width:100%">Add Movie to Database</button>
+            <button class="btn-admin" style="width:100%">Publish To Live Database</button>
         </div>
     </form>
 
-    <h3 style="font-size:14px; margin-bottom:15px; color:#888;">CURRENT MOVIES IN DATABASE</h3>
-    <div id="adminMovieList"></div>
+    <h3 style="font-size:14px; margin-bottom:15px; color:#888;">LIVE DATABASE MOVIES</h3>
+    <div id="adminMovieList">Connecting to cloud database...</div>
 </div>
 
-<script>
-// SHA-256 Hash of default password "1234"
-const DEFAULT_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4";
+<!-- Firebase Realtime Cloud SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, set, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-async function hashString(str) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(str);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
+  // Aapki Live Firebase Credentials
+  const firebaseConfig = {
+    apiKey: "AIzaSyBfGylU2R4GTtsgqJsbDl-Y2e8i-a2jbEE",
+    authDomain: "badger-e5c9f.firebaseapp.com",
+    databaseURL: "https://badger-e5c9f-default-rtdb.firebaseio.com",
+    projectId: "badger-e5c9f",
+    storageBucket: "badger-e5c9f.firebasestorage.app",
+    messagingSenderId: "483650469817",
+    appId: "1:483650469817:web:5818b00d1732b8baee8068",
+    measurementId: "G-EXEE25B743"
+  };
 
-function getActiveHash() {
-    return localStorage.getItem("BADGE_ADMIN_HASH") || DEFAULT_HASH;
-}
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-async function verifyAccess() {
-    const input = document.getElementById("adminPassInput").value.trim();
-    const inputHash = await hashString(input);
-    const activeHash = getActiveHash();
-    
-    if(inputHash === activeHash) {
-        document.getElementById("authBox").style.display = "none";
-        document.getElementById("dashBoard").style.display = "block";
-        loadAdminMovies();
-    } else {
-        alert("❌ Access Denied: Incorrect Passcode!");
-    }
-}
+  // Default Passcode "1234" (SHA-256 Hash)
+  const DEFAULT_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4";
 
-async function changePassword() {
-    const newPass = document.getElementById("newPassInput").value.trim();
-    if(newPass.length < 3) {
-        alert("⚠️ Please enter a passcode with at least 3 characters!");
-        return;
-    }
-    
-    const newHash = await hashString(newPass);
-    localStorage.setItem("BADGE_ADMIN_HASH", newHash);
-    document.getElementById("newPassInput").value = "";
-    alert("✅ Passcode Updated Successfully!");
-}
+  async function hashString(str) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(str);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
 
-function getDatabase() {
-    return JSON.parse(localStorage.getItem("BADGE_MOVIES_DB")) || [];
-}
+  window.verifyAccess = async function() {
+      const input = document.getElementById("adminPassInput").value.trim();
+      const inputHash = await hashString(input);
+      const activeHash = localStorage.getItem("BADGE_ADMIN_HASH") || DEFAULT_HASH;
+      
+      if(inputHash === activeHash) {
+          document.getElementById("authBox").style.display = "none";
+          document.getElementById("dashBoard").style.display = "block";
+          listenToMovies();
+      } else {
+          alert("❌ Access Denied: Incorrect Passcode!");
+      }
+  };
 
-function saveDatabase(data) {
-    localStorage.setItem("BADGE_MOVIES_DB", JSON.stringify(data));
-}
+  window.changePassword = async function() {
+      const newPass = document.getElementById("newPassInput").value.trim();
+      if(newPass.length < 3) {
+          alert("⚠️ Passcode must be at least 3 characters!");
+          return;
+      }
+      const newHash = await hashString(newPass);
+      localStorage.setItem("BADGE_ADMIN_HASH", newHash);
+      document.getElementById("newPassInput").value = "";
+      alert("✅ Passcode Updated Successfully!");
+  };
 
-function addMovie(e) {
-    e.preventDefault();
-    const db = getDatabase();
-    
-    const newMovie = {
-        id: Date.now(),
-        name: document.getElementById("mName").value,
-        rating: document.getElementById("mRating").value,
-        banner: document.getElementById("mBanner").value,
-        link: document.getElementById("mLink").value.trim(),
-        trending: document.getElementById("mTrending").value
-    };
+  window.addMovie = function(e) {
+      e.preventDefault();
+      const moviesRef = ref(db, 'movies');
+      const newMovieRef = push(moviesRef);
+      
+      set(newMovieRef, {
+          name: document.getElementById("mName").value,
+          rating: document.getElementById("mRating").value,
+          banner: document.getElementById("mBanner").value,
+          link: document.getElementById("mLink").value.trim(),
+          trending: document.getElementById("mTrending").value,
+          createdAt: Date.now()
+      }).then(() => {
+          document.getElementById("movieForm").reset();
+          alert("🚀 Movie Published to Live Cloud Database!");
+      }).catch((err) => {
+          alert("❌ Error saving to database: " + err.message);
+      });
+  };
 
-    db.unshift(newMovie);
-    saveDatabase(db);
-    document.getElementById("movieForm").reset();
-    loadAdminMovies();
-    alert("✅ Movie Successfully Published!");
-}
+  window.deleteMovie = function(key) {
+      if(confirm("Are you sure you want to remove this movie globally?")) {
+          const movieItemRef = ref(db, 'movies/' + key);
+          remove(movieItemRef);
+      }
+  };
 
-function deleteMovie(id) {
-    if(confirm("Are you sure you want to remove this movie?")) {
-        let db = getDatabase();
-        db = db.filter(m => m.id !== id);
-        saveDatabase(db);
-        loadAdminMovies();
-    }
-}
+  function listenToMovies() {
+      const moviesRef = ref(db, 'movies');
+      onValue(moviesRef, (snapshot) => {
+          const data = snapshot.val();
+          const list = document.getElementById("adminMovieList");
+          list.innerHTML = "";
 
-function loadAdminMovies() {
-    const db = getDatabase();
-    const list = document.getElementById("adminMovieList");
-    list.innerHTML = "";
+          if(!data) {
+              list.innerHTML = "<p style='color:#444; font-size:11px;'>No movies in cloud database.</p>";
+              return;
+          }
 
-    if(db.length === 0) {
-        list.innerHTML = "<p style='color:#444; font-size:11px;'>No movies added yet.</p>";
-        return;
-    }
-
-    db.forEach(m => {
-        const isUpcoming = !m.link || m.link.trim() === "";
-        list.innerHTML += `
-            <div class="movie-item">
-                <div class="movie-info">
-                    <img src="${m.banner}" class="movie-poster" onerror="this.src='https://via.placeholder.com/45x60?text=No+Img'">
-                    <div>
-                        <strong style="font-size:13px">${m.name}</strong>
-                        <div style="font-size:10px; color:#777; margin-top:3px;">
-                            ⭐ ${m.rating} | ${isUpcoming ? '⏳ UPCOMING' : '⚡ READY'}
-                        </div>
-                    </div>
-                </div>
-                <button class="del-btn" onclick="deleteMovie(${m.id})">Delete</button>
-            </div>
-        `;
-    });
-}
+          Object.keys(data).reverse().forEach(key => {
+              const m = data[key];
+              const isUpcoming = !m.link || m.link.trim() === "";
+              list.innerHTML += `
+                  <div class="movie-item">
+                      <div class="movie-info">
+                          <img src="${m.banner}" class="movie-poster" onerror="this.src='https://via.placeholder.com/45x60?text=No+Img'">
+                          <div>
+                              <strong style="font-size:13px">${m.name}</strong>
+                              <div style="font-size:10px; color:#777; margin-top:3px;">
+                                  ⭐ ${m.rating} | ${isUpcoming ? '⏳ UPCOMING' : '⚡ READY'}
+                              </div>
+                          </div>
+                      </div>
+                      <button class="del-btn" onclick="deleteMovie('${key}')">Delete</button>
+                  </div>
+              `;
+          });
+      });
+  }
 </script>
 </body>
-              </html>
-      
+</html>
