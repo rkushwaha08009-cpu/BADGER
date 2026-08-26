@@ -45,10 +45,10 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
     
     <div style="text-align:left">
         <label>Passcode Verification</label>
-        <input type="password" id="adminPassInput" placeholder="Enter Authorization Code" maxlength="30" onkeydown="if(event.key==='Enter') verifyAccess()">
+        <input type="password" id="adminPassInput" placeholder="Enter Authorization Code" maxlength="30">
     </div>
     
-    <button class="btn-admin" style="width:100%; margin-top:20px;" onclick="verifyAccess()">Access Panel</button>
+    <button class="btn-admin" id="loginBtn" style="width:100%; margin-top:20px;">Access Panel</button>
 </div>
 
 <div class="dashboard" id="dashBoard">
@@ -59,7 +59,7 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
         </div>
         <div>
             <a href="movies.html" target="_blank" style="color:#aaa; font-size:11px; margin-right:15px; text-decoration:none;">View Page ↗</a>
-            <button class="del-btn" onclick="lockPanel()">🔒 Lock Panel</button>
+            <button class="del-btn" id="lockBtn">🔒 Lock Panel</button>
         </div>
     </div>
 
@@ -68,7 +68,7 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
             <label>Update Master Passcode</label>
             <input type="password" id="newPassInput" placeholder="Enter New Passcode">
         </div>
-        <button class="btn-admin" style="padding: 12px 20px;" onclick="changePassword()">Update Passcode</button>
+        <button class="btn-admin" id="changePassBtn" style="padding: 12px 20px;">Update Passcode</button>
     </div>
 
     <form class="grid-form" id="movieForm">
@@ -122,39 +122,15 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // PBKDF2 Implementation to prevent dictionary / brute-force attacks
-  async function hashPassword(password, saltStr = 'BADGE_STATIC_SALT_2026') {
-      const enc = new TextEncoder();
-      const keyMaterial = await crypto.subtle.importKey(
-          "raw", enc.encode(password), "PBKDF2", false, ["deriveBits", "deriveKey"]
-      );
-      const key = await crypto.subtle.deriveKey(
-          {
-              name: "PBKDF2",
-              salt: enc.encode(saltStr),
-              iterations: 100000,
-              hash: "SHA-256"
-          },
-          keyMaterial,
-          { name: "AES-GCM", length: 256 },
-          true,
-          ["encrypt", "decrypt"]
-      );
-      const exported = await crypto.subtle.exportKey("raw", key);
-      return Array.from(new Uint8Array(exported)).map(b => b.toString(16).padStart(2, '0')).join('');
-  }
+  const DEFAULT_PASS = "1234";
 
-  // Pre-calculated PBKDF2 hash for initial setup (Password: 1234)
-  const INITIAL_HASH = "8f3a3f5b721e1a80e14c0a59b6bfa6b52c009c91350a5bc9b5177df9bbd36c1e";
-
-  window.verifyAccess = async function() {
+  function verifyAccess() {
       const input = document.getElementById("adminPassInput").value.trim();
       if(!input) return alert("⚠️ Enter password!");
       
-      const inputHash = await hashPassword(input);
-      const activeHash = localStorage.getItem("BADGE_ADMIN_HASH") || INITIAL_HASH;
+      const activePass = localStorage.getItem("BADGE_ADMIN_PASS") || DEFAULT_PASS;
       
-      if(inputHash === activeHash) {
+      if(input === activePass) {
           sessionStorage.setItem("BADGE_AUTH_STATE", "true");
           document.getElementById("authBox").style.display = "none";
           document.getElementById("dashBoard").style.display = "block";
@@ -162,32 +138,41 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
       } else {
           alert("❌ Access Denied: Incorrect Passcode!");
       }
-  };
+  }
 
-  window.lockPanel = function() {
+  function lockPanel() {
       sessionStorage.removeItem("BADGE_AUTH_STATE");
       location.reload();
-  };
+  }
 
-  // Persist login state on refresh during session
+  function changePassword() {
+      const newPass = document.getElementById("newPassInput").value.trim();
+      if(newPass.length < 4) {
+          alert("⚠️ Passcode must be at least 4 characters!");
+          return;
+      }
+      localStorage.setItem("BADGE_ADMIN_PASS", newPass);
+      document.getElementById("newPassInput").value = "";
+      alert("✅ Passcode Updated Successfully!");
+  }
+
+  // Event Listeners Binding (Module-safe)
+  document.getElementById("loginBtn").addEventListener("click", verifyAccess);
+  document.getElementById("lockBtn").addEventListener("click", lockPanel);
+  document.getElementById("changePassBtn").addEventListener("click", changePassword);
+  
+  document.getElementById("adminPassInput").addEventListener("keydown", (e) => {
+      if(e.key === "Enter") verifyAccess();
+  });
+
+  // Session state restore
   if (sessionStorage.getItem("BADGE_AUTH_STATE") === "true") {
       document.getElementById("authBox").style.display = "none";
       document.getElementById("dashBoard").style.display = "block";
       listenToMovies();
   }
 
-  window.changePassword = async function() {
-      const newPass = document.getElementById("newPassInput").value.trim();
-      if(newPass.length < 6) {
-          alert("⚠️ Passcode must be at least 6 characters!");
-          return;
-      }
-      const newHash = await hashPassword(newPass);
-      localStorage.setItem("BADGE_ADMIN_HASH", newHash);
-      document.getElementById("newPassInput").value = "";
-      alert("✅ Passcode Updated Successfully!");
-  };
-
+  // Form Submit Handler
   document.getElementById("movieForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const moviesRef = ref(db, 'movies');
@@ -207,13 +192,6 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
           alert("❌ Error saving to database: " + err.message);
       });
   });
-
-  window.deleteMovie = function(key) {
-      if(confirm("Are you sure you want to remove this movie globally?")) {
-          const movieItemRef = ref(db, 'movies/' + key);
-          remove(movieItemRef);
-      }
-  };
 
   function listenToMovies() {
       const moviesRef = ref(db, 'movies');
@@ -237,7 +215,7 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
                   <div class="movie-info">
                       <img src="${m.banner}" class="movie-poster" onerror="this.src='https://dummyimage.com/45x60/151518/888888.png&text=No+Img'">
                       <div>
-                          <strong style="font-size:13px"></strong>
+                          <strong class="title-text" style="font-size:13px"></strong>
                           <div style="font-size:10px; color:#777; margin-top:3px;">
                               ⭐ ${m.rating} | ${isUpcoming ? '⏳ UPCOMING' : '⚡ READY'}
                           </div>
@@ -246,9 +224,12 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
                   <button class="del-btn">Delete</button>
               `;
               
-              // Sanitized Text Content to prevent XSS
-              item.querySelector("strong").textContent = m.name;
-              item.querySelector(".del-btn").addEventListener("click", () => deleteMovie(key));
+              item.querySelector(".title-text").textContent = m.name;
+              item.querySelector(".del-btn").addEventListener("click", () => {
+                  if(confirm("Are you sure you want to remove this movie globally?")) {
+                      remove(ref(db, 'movies/' + key));
+                  }
+              });
               
               list.appendChild(item);
           });
