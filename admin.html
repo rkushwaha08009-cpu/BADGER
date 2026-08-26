@@ -11,7 +11,7 @@
 body { background: var(--bg); color: #fff; min-height: 100vh; padding: 20px; }
 
 .auth-box { max-width: 420px; margin: 80px auto; background: var(--card); padding: 35px; border-radius: 20px; border: 1px solid var(--red); text-align: center; box-shadow: 0 0 50px rgba(255,23,68,0.15); }
-.auth-box h2 { font-family: 'Space Grotesk'; font-size: 24px; margin-bottom: 8px; }
+.auth-box h2 { font-family: 'Space Grotesk', sans-serif; font-size: 24px; margin-bottom: 8px; }
 .auth-box p { color: #888; font-size: 11px; margin-bottom: 25px; line-height: 1.5; }
 .warning-badge { background: rgba(255,23,68,0.1); color: var(--red); font-size: 9px; font-weight: 900; padding: 6px 12px; border-radius: 30px; display: inline-block; margin-bottom: 15px; border: 1px solid rgba(255,23,68,0.3); }
 
@@ -32,7 +32,7 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
 .movie-item { display: flex; align-items: center; justify-content: space-between; background: var(--card); padding: 15px 20px; border-radius: 12px; border: 1px solid var(--line); margin-bottom: 10px; }
 .movie-info { display: flex; align-items: center; gap: 15px; }
 .movie-poster { width: 45px; height: 60px; border-radius: 6px; object-fit: cover; background:#222; }
-.del-btn { background: #1a0508; color: var(--red); border: 1px solid rgba(255,23,68,0.3); padding: 8px 14px; border-radius: 6px; font-size: 10px; font-weight: 800; cursor: pointer; }
+.del-btn { background: #1a0508; color: var(--red); border: 1px solid rgba(255,23,68,0.3); padding: 8px 14px; border-radius: 6px; font-size: 10px; font-weight: 800; cursor: pointer; transition: 0.2s; }
 .del-btn:hover { background: var(--red); color: #fff; }
 </style>
 </head>
@@ -54,7 +54,7 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
 <div class="dashboard" id="dashBoard">
     <div class="admin-head">
         <div>
-            <h1 style="font-family:'Space Grotesk'">BADGE DB CONTROL</h1>
+            <h1 style="font-family:'Space Grotesk', sans-serif">BADGE DB CONTROL</h1>
             <p style="color:#666; font-size:11px">Manage movies, ratings, and cloud storage in real-time.</p>
         </div>
         <div>
@@ -71,7 +71,7 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
         <button class="btn-admin" style="padding: 12px 20px;" onclick="changePassword()">Update Passcode</button>
     </div>
 
-    <form class="grid-form" id="movieForm" onsubmit="addMovie(event)">
+    <form class="grid-form" id="movieForm">
         <div>
             <label>Movie Title</label>
             <input type="text" id="mName" placeholder="e.g. Kanguva" required>
@@ -96,7 +96,7 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
             </select>
         </div>
         <div style="display:flex; align-items:flex-end;">
-            <button class="btn-admin" style="width:100%">Publish To Live Database</button>
+            <button type="submit" class="btn-admin" style="width:100%">Publish To Live Database</button>
         </div>
     </form>
 
@@ -104,12 +104,10 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
     <div id="adminMovieList">Connecting to cloud database...</div>
 </div>
 
-<!-- Firebase Realtime Cloud SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getDatabase, ref, set, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-  // Aapki Live Firebase Credentials
   const firebaseConfig = {
     apiKey: "AIzaSyBfGylU2R4GTtsgqJsbDl-Y2e8i-a2jbEE",
     authDomain: "badger-e5c9f.firebaseapp.com",
@@ -124,7 +122,6 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  // Default Passcode "1234" (SHA-256 Hash)
   const DEFAULT_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4";
 
   async function hashString(str) {
@@ -161,7 +158,7 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
       alert("✅ Passcode Updated Successfully!");
   };
 
-  window.addMovie = function(e) {
+  document.getElementById("movieForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const moviesRef = ref(db, 'movies');
       const newMovieRef = push(moviesRef);
@@ -179,7 +176,7 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
       }).catch((err) => {
           alert("❌ Error saving to database: " + err.message);
       });
-  };
+  });
 
   window.deleteMovie = function(key) {
       if(confirm("Are you sure you want to remove this movie globally?")) {
@@ -206,7 +203,7 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
               list.innerHTML += `
                   <div class="movie-item">
                       <div class="movie-info">
-                          <img src="${m.banner}" class="movie-poster" onerror="this.src='https://via.placeholder.com/45x60?text=No+Img'">
+                          <img src="${m.banner}" class="movie-poster" onerror="this.src='https://dummyimage.com/45x60/151518/888888.png&text=No+Img'">
                           <div>
                               <strong style="font-size:13px">${m.name}</strong>
                               <div style="font-size:10px; color:#777; margin-top:3px;">
