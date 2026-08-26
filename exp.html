@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BADGE — Movie Showcase</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Space+Grotesk:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root { --bg: #040405; --card: #0d0d10; --red: #ff1744; --line: rgba(255,255,255,0.08); }
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Inter', sans-serif; }
+body { background: var(--bg); color: #fff; min-height: 100vh; }
+
+header { padding: 25px 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); }
+.logo { font-family: 'Space Grotesk'; font-size: 24px; font-weight: 900; text-decoration:none; color:#fff; }
+.logo span { color: var(--red); }
+
+.detail-container { width: min(800px, 90%); margin: 50px auto; background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 30px; display: flex; gap: 30px; align-items: center; }
+.poster-box { width: 240px; height: 340px; border-radius: 14px; overflow: hidden; flex-shrink: 0; background: #151518; }
+.poster-box img { width: 100%; height: 100%; object-fit: cover; }
+
+.info-box { flex: 1; }
+.tag { background: rgba(255,212,59,0.1); color: #ffd43b; font-size: 10px; font-weight: 900; padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(255,212,59,0.3); display: inline-block; margin-bottom: 15px; }
+.title { font-family: 'Space Grotesk'; font-size: 32px; margin-bottom: 10px; }
+.meta { color: #888; font-size: 12px; margin-bottom: 20px; display: flex; gap: 15px; }
+
+.notice { background: rgba(255,255,255,0.03); border-left: 3px solid var(--red); padding: 15px; font-size: 12px; color: #aaa; margin-bottom: 25px; line-height: 1.6; }
+
+.back-btn { display: inline-block; background: var(--red); color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 11px; font-weight: 900; text-decoration: none; transition: 0.3s; }
+.back-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+
+@media(max-width: 650px) {
+    .detail-container { flex-direction: column; text-align: center; }
+    .meta { justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<header>
+    <a href="index.html" class="logo">BADGE<span>.</span></a>
+</header>
+
+<div class="detail-container" id="detailsWrapper">
+    <!-- Dynamic JS Content -->
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const movieId = Number(params.get("id"));
+const db = JSON.parse(localStorage.getItem("BADGE_MOVIES_DB")) || [];
+const movie = db.find(m => m.id === movieId);
+const wrapper = document.getElementById("detailsWrapper");
+
+if(movie) {
+    wrapper.innerHTML = `
+        <div class="poster-box">
+            <img src="${movie.banner}" alt="${movie.name}" onerror="this.src='https://via.placeholder.com/240x340?text=No+Poster'">
+        </div>
+        <div class="info-box">
+            <div class="tag">⏳ UPCOMING RELEASE</div>
+            <h1 class="title">${movie.name}</h1>
+            <div class="meta">
+                <span>⭐ Rating: ${movie.rating}</span>
+                <span>STATUS: Official Drop Pending</span>
+            </div>
+            <div class="notice">
+                Yeh movie abhi process me hai aur jald hi server par available hogi. Download link release hote hi <b>MOVIES HUB</b> page par live ho jayega.
+            </div>
+            <a href="movies.html" class="back-btn">← BACK TO MOVIES</a>
+        </div>
+    `;
+} else {
+    wrapper.innerHTML = `
+        <div style="text-align:center; width:100%;">
+            <h2>Movie Details Not Found</h2>
+            <br>
+            <a href="movies.html" class="back-btn">← RETURN TO MOVIES HUB</a>
+        </div>
+    `;
+}
+</script>
+</body>
+</html>
