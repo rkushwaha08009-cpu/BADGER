@@ -67,14 +67,18 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
         </div>
     </div>
 
-    <!-- CHARITY / UPI PAYMENT SETTINGS FORM -->
+    <!-- PAYMENT / UPI SETTINGS FORM -->
     <div class="section-title">💳 PAYMENT & CHARITY SETTINGS</div>
     <form class="grid-form" id="paymentForm">
         <div>
             <label>UPI ID (For Donations)</label>
-            <input type="text" id="pUpi" placeholder="e.g. raj@upi" required>
+            <input type="text" id="pUpi" placeholder="e.g. raj121212@fam" required>
         </div>
         <div>
+            <label>Payee / Display Name</label>
+            <input type="text" id="pName" placeholder="Badger" value="Badger" required>
+        </div>
+        <div class="full">
             <label>QR Code Image Direct Link (URL)</label>
             <input type="url" id="pQrUrl" placeholder="https://example.com/my-qr.png" required>
         </div>
@@ -142,7 +146,7 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
   const auth = getAuth(app);
   const db = getDatabase(app);
 
-  // Verification Login
+  // Login
   document.getElementById("loginBtn").addEventListener("click", () => {
       const email = document.getElementById("adminEmailInput").value.trim();
       const pass = document.getElementById("adminPassInput").value.trim();
@@ -172,36 +176,39 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
       }
   });
 
-  // Save UPI & QR Code Settings to Firebase Live DB
+  // Save Payment Settings with Payee Name
   document.getElementById("paymentForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const upiVal = document.getElementById("pUpi").value.trim();
+      const payeeVal = document.getElementById("pName").value.trim() || "Badger";
       const qrVal = document.getElementById("pQrUrl").value.trim();
 
       set(ref(db, 'payment_details'), {
           upiId: upiVal,
+          payeeName: payeeVal,
           qrUrl: qrVal,
           updatedAt: Date.now()
       }).then(() => {
           alert("🚀 Payment details updated live!");
       }).catch((err) => {
-          alert("❌ Error saving payment details: " + err.message);
+          alert("❌ Error: " + err.message);
       });
   });
 
-  // Read Payment Details for Preview
+  // Read Payment Details
   function listenToPaymentDetails() {
       onValue(ref(db, 'payment_details'), (snapshot) => {
           const data = snapshot.val();
           if(data) {
               document.getElementById("pUpi").value = data.upiId || "";
+              document.getElementById("pName").value = data.payeeName || "Badger";
               document.getElementById("pQrUrl").value = data.qrUrl || "";
               document.getElementById("qrPreviewImg").src = data.qrUrl || "";
           }
       });
   }
 
-  // Form Submit Handler for Movies
+  // Movie Publish
   document.getElementById("movieForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const moviesRef = ref(db, 'movies');
@@ -218,7 +225,7 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
           document.getElementById("movieForm").reset();
           alert("🚀 Movie Published to Live Cloud Database!");
       }).catch((err) => {
-          alert("❌ Permission Error: " + err.message);
+          alert("❌ Error: " + err.message);
       });
   });
 
