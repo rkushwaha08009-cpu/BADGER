@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Support Us — BADGE</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Space+Grotesk:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg: #040405;
+    --card: #0d0d10;
+    --red: #ff1744;
+    --line: rgba(255,255,255,.08);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+
+.charity-card { max-width: 440px; width: 100%; background: var(--card); border: 1px solid var(--line); border-radius: 24px; padding: 35px 25px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.9), 0 0 30px rgba(255,23,68,0.2); position: relative; }
+.back-btn { position: absolute; top: 20px; left: 20px; color: #888; text-decoration: none; font-size: 12px; font-weight: 800; }
+.back-btn:hover { color: #fff; }
+
+h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 900; margin-top: 15px; }
+h1 span { color: var(--red); }
+p.desc { font-size: 13px; color: #aaa; margin-top: 8px; line-height: 1.5; }
+
+.qr-container { margin: 25px auto 15px; width: 180px; height: 180px; border-radius: 16px; border: 2px solid var(--red); padding: 8px; background: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(255,23,68,0.3); }
+.qr-container img { width: 100%; height: 100%; object-fit: contain; border-radius: 10px; }
+
+.upi-box { background: rgba(255,255,255,0.04); border: 1px solid var(--line); padding: 12px 18px; border-radius: 30px; display: inline-flex; align-items: center; gap: 10px; margin-top: 10px; }
+.upi-text { font-size: 13px; font-weight: 700; color: #fff; }
+.copy-btn { background: rgba(255,23,68,0.2); color: var(--red); border: 1px solid rgba(255,23,68,0.4); padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 900; cursor: pointer; transition: 0.2s; }
+.copy-btn:hover { background: var(--red); color: #fff; }
+
+.donate-btn { display: block; width: 100%; margin-top: 25px; padding: 18px; background: linear-gradient(135deg, #ff1744, #b20024); color: #fff; text-decoration: none; font-weight: 900; font-size: 14px; border-radius: 40px; letter-spacing: 1px; text-transform: uppercase; box-shadow: 0 10px 30px rgba(255,23,68,0.4); transition: 0.3s ease; }
+.donate-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 15px 40px rgba(255,23,68,0.7); }
+</style>
+</head>
+<body>
+
+<div class="charity-card">
+    <a href="index.html" class="back-btn">← BACK</a>
+
+    <h1>SUPPORT <span>BADGE</span> 🤍</h1>
+    <p class="desc">Help us maintain high-speed servers & keep all movie archives free for everyone.</p>
+
+    <!-- Scanner Display -->
+    <div class="qr-container">
+        <img id="displayQR" src="" alt="Loading QR...">
+    </div>
+
+    <!-- UPI Box -->
+    <div class="upi-box">
+        <span class="upi-text" id="displayUPI">Fetching UPI...</span>
+        <button class="copy-btn" id="copyBtn">COPY</button>
+    </div>
+
+    <!-- Direct ₹10 Instant Payment Button -->
+    <a href="#" id="pay10Btn" class="donate-btn">HELP US (DONATE ₹10) 🚀</a>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBfGylU2R4GTtsgqJsbDl-Y2e8i-a2jbEE",
+    authDomain: "badger-e5c9f.firebaseapp.com",
+    databaseURL: "https://badger-e5c9f-default-rtdb.firebaseio.com",
+    projectId: "badger-e5c9f",
+    storageBucket: "badger-e5c9f.firebasestorage.app",
+    messagingSenderId: "483650469817",
+    appId: "1:483650469817:web:5818b00d1732b8baee8068",
+    measurementId: "G-EXEE25B743"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  let activeUPI = "";
+
+  // Real-time Database Sync
+  onValue(ref(db, 'payment_details'), (snapshot) => {
+      const data = snapshot.val();
+      if(data && data.upiId) {
+          activeUPI = data.upiId;
+          document.getElementById("displayUPI").innerText = data.upiId;
+          document.getElementById("displayQR").src = data.qrUrl || `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(data.upiId)}`;
+          
+          // ₹10 Deep-link Setup
+          const upiDeepLink = `upi://pay?pa=${encodeURIComponent(data.upiId)}&pn=BADGE%20Charity&am=10&cu=INR`;
+          document.getElementById("pay10Btn").setAttribute("href", upiDeepLink);
+      } else {
+          document.getElementById("displayUPI").innerText = "Not Configured";
+      }
+  });
+
+  // Copy Button
+  document.getElementById("copyBtn").addEventListener("click", () => {
+      if(!activeUPI) return;
+      navigator.clipboard.writeText(activeUPI);
+      alert("UPI ID Copied: " + activeUPI);
+  });
+</script>
+
+</body>
+</html>
