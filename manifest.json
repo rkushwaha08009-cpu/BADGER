@@ -1,0 +1,16 @@
+{
+  "name": "BADGE",
+  "short_name": "BADGE",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#040405",
+  "theme_color": "#ff1744",
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
