@@ -78,23 +78,25 @@ p.desc { font-size: 13px; color: #aaa; margin-top: 8px; line-height: 1.5; }
 
   let activeUPI = "";
 
-  // Real-time Database Sync
+  // Dynamic Real-time DB Fetch
   onValue(ref(db, 'payment_details'), (snapshot) => {
       const data = snapshot.val();
       if(data && data.upiId) {
           activeUPI = data.upiId;
+          const payeeName = encodeURIComponent(data.payeeName || "Badger");
+          
           document.getElementById("displayUPI").innerText = data.upiId;
           document.getElementById("displayQR").src = data.qrUrl || `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(data.upiId)}`;
           
-          // ₹10 Deep-link Setup
-          const upiDeepLink = `upi://pay?pa=${encodeURIComponent(data.upiId)}&pn=BADGE%20Charity&am=10&cu=INR`;
+          // ₹10 Deep-link Format with "pn=Badger" (Encoded Name)
+          const upiDeepLink = `upi://pay?pa=${encodeURIComponent(data.upiId)}&pn=${payeeName}&am=10&cu=INR`;
           document.getElementById("pay10Btn").setAttribute("href", upiDeepLink);
       } else {
           document.getElementById("displayUPI").innerText = "Not Configured";
       }
   });
 
-  // Copy Button
+  // Copy Action
   document.getElementById("copyBtn").addEventListener("click", () => {
       if(!activeUPI) return;
       navigator.clipboard.writeText(activeUPI);
