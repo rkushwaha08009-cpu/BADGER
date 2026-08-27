@@ -26,9 +26,6 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
 .btn-admin { background: var(--red); color: #fff; border: 0; padding: 14px; border-radius: 8px; font-size: 11px; font-weight: 900; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; }
 .btn-admin:hover { opacity: 0.9; transform: translateY(-2px); }
 
-.pass-change-card { background: var(--card); padding: 20px; border-radius: 16px; border: 1px solid var(--line); margin-bottom: 30px; display: flex; gap: 15px; align-items: flex-end; }
-.pass-change-card div { flex: 1; }
-
 .movie-item { display: flex; align-items: center; justify-content: space-between; background: var(--card); padding: 15px 20px; border-radius: 12px; border: 1px solid var(--line); margin-bottom: 10px; }
 .movie-info { display: flex; align-items: center; gap: 15px; }
 .movie-poster { width: 45px; height: 60px; border-radius: 6px; object-fit: cover; background:#222; }
@@ -39,36 +36,31 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
 <body>
 
 <div class="auth-box" id="authBox">
-    <div class="warning-badge">⚠️ HIGH SECURITY VERIFICATION</div>
-    <h2>VERIFY IDENTITY</h2>
-    <p>Enter Passcode to access admin dashboard.</p>
+    <div class="warning-badge">🔒 SECURE ADMIN AUTH</div>
+    <h2>ADMIN LOGIN</h2>
+    <p>Authentication required to access live DB writing.</p>
     
     <div style="text-align:left">
-        <label>Passcode Verification</label>
-        <input type="password" id="adminPassInput" placeholder="Enter Authorization Code" maxlength="30">
+        <label>Admin Email</label>
+        <input type="email" id="adminEmailInput" placeholder="admin@badge.com">
+        <br><br>
+        <label>Password</label>
+        <input type="password" id="adminPassInput" placeholder="Enter Password">
     </div>
     
-    <button class="btn-admin" id="loginBtn" style="width:100%; margin-top:20px;">Access Panel</button>
+    <button class="btn-admin" id="loginBtn" style="width:100%; margin-top:20px;">Verify & Access</button>
 </div>
 
 <div class="dashboard" id="dashBoard">
     <div class="admin-head">
         <div>
             <h1 style="font-family:'Space Grotesk', sans-serif">BADGE DB CONTROL</h1>
-            <p style="color:#666; font-size:11px">Manage movies, ratings, and cloud storage in real-time.</p>
+            <p style="color:#666; font-size:11px">Authenticated Super-Admin Session Active</p>
         </div>
         <div>
             <a href="movies.html" target="_blank" style="color:#aaa; font-size:11px; margin-right:15px; text-decoration:none;">View Page ↗</a>
-            <button class="del-btn" id="lockBtn">🔒 Lock Panel</button>
+            <button class="del-btn" id="lockBtn">🔒 Logout & Lock</button>
         </div>
-    </div>
-
-    <div class="pass-change-card">
-        <div>
-            <label>Update Master Passcode</label>
-            <input type="password" id="newPassInput" placeholder="Enter New Passcode">
-        </div>
-        <button class="btn-admin" id="changePassBtn" style="padding: 12px 20px;">Update Passcode</button>
     </div>
 
     <form class="grid-form" id="movieForm">
@@ -82,7 +74,7 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
         </div>
         <div class="full">
             <label>Poster / Banner Image URL</label>
-            <input type="url" id="mBanner" placeholder="https://image-link.com/poster.jpg" required>
+            <input type="text" id="mBanner" placeholder="https://image-link.com/poster.jpg" required>
         </div>
         <div class="full">
             <label>Download Link (Leave empty if UPCOMING)</label>
@@ -101,11 +93,12 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
     </form>
 
     <h3 style="font-size:14px; margin-bottom:15px; color:#888;">LIVE DATABASE MOVIES</h3>
-    <div id="adminMovieList">Connecting to cloud database...</div>
+    <div id="adminMovieList">Loading database...</div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
   import { getDatabase, ref, set, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
   const firebaseConfig = {
@@ -120,57 +113,37 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
   };
 
   const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
   const db = getDatabase(app);
 
-  const DEFAULT_PASS = "1234";
+  // Verification Login
+  document.getElementById("loginBtn").addEventListener("click", () => {
+      const email = document.getElementById("adminEmailInput").value.trim();
+      const pass = document.getElementById("adminPassInput").value.trim();
+      
+      if(!email || !pass) return alert("⚠️ Enter both email and password!");
 
-  function verifyAccess() {
-      const input = document.getElementById("adminPassInput").value.trim();
-      if(!input) return alert("⚠️ Enter password!");
-      
-      const activePass = localStorage.getItem("BADGE_ADMIN_PASS") || DEFAULT_PASS;
-      
-      if(input === activePass) {
-          sessionStorage.setItem("BADGE_AUTH_STATE", "true");
+      signInWithEmailAndPassword(auth, email, pass)
+          .then(() => alert("✅ Verification Success! Access Granted."))
+          .catch(err => alert("❌ Auth Failed: " + err.message));
+  });
+
+  // Logout
+  document.getElementById("lockBtn").addEventListener("click", () => {
+      signOut(auth).then(() => location.reload());
+  });
+
+  // Session Monitor
+  onAuthStateChanged(auth, (user) => {
+      if (user) {
           document.getElementById("authBox").style.display = "none";
           document.getElementById("dashBoard").style.display = "block";
           listenToMovies();
       } else {
-          alert("❌ Access Denied: Incorrect Passcode!");
+          document.getElementById("authBox").style.display = "block";
+          document.getElementById("dashBoard").style.display = "none";
       }
-  }
-
-  function lockPanel() {
-      sessionStorage.removeItem("BADGE_AUTH_STATE");
-      location.reload();
-  }
-
-  function changePassword() {
-      const newPass = document.getElementById("newPassInput").value.trim();
-      if(newPass.length < 4) {
-          alert("⚠️ Passcode must be at least 4 characters!");
-          return;
-      }
-      localStorage.setItem("BADGE_ADMIN_PASS", newPass);
-      document.getElementById("newPassInput").value = "";
-      alert("✅ Passcode Updated Successfully!");
-  }
-
-  // Event Listeners Binding (Module-safe)
-  document.getElementById("loginBtn").addEventListener("click", verifyAccess);
-  document.getElementById("lockBtn").addEventListener("click", lockPanel);
-  document.getElementById("changePassBtn").addEventListener("click", changePassword);
-  
-  document.getElementById("adminPassInput").addEventListener("keydown", (e) => {
-      if(e.key === "Enter") verifyAccess();
   });
-
-  // Session state restore
-  if (sessionStorage.getItem("BADGE_AUTH_STATE") === "true") {
-      document.getElementById("authBox").style.display = "none";
-      document.getElementById("dashBoard").style.display = "block";
-      listenToMovies();
-  }
 
   // Form Submit Handler
   document.getElementById("movieForm").addEventListener("submit", function(e) {
@@ -189,7 +162,7 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
           document.getElementById("movieForm").reset();
           alert("🚀 Movie Published to Live Cloud Database!");
       }).catch((err) => {
-          alert("❌ Error saving to database: " + err.message);
+          alert("❌ Permission Error: " + err.message);
       });
   });
 
@@ -201,7 +174,7 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
           list.innerHTML = "";
 
           if(!data) {
-              list.innerHTML = "<p style='color:#444; font-size:11px;'>No movies in cloud database.</p>";
+              list.innerHTML = "<p style='color:#444; font-size:11px;'>No movies in database.</p>";
               return;
           }
 
