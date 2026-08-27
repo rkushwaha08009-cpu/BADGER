@@ -31,6 +31,9 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
 .movie-poster { width: 45px; height: 60px; border-radius: 6px; object-fit: cover; background:#222; }
 .del-btn { background: #1a0508; color: var(--red); border: 1px solid rgba(255,23,68,0.3); padding: 8px 14px; border-radius: 6px; font-size: 10px; font-weight: 800; cursor: pointer; transition: 0.2s; }
 .del-btn:hover { background: var(--red); color: #fff; }
+
+.section-title { font-family:'Space Grotesk', sans-serif; font-size:16px; color:#fff; margin-bottom:15px; margin-top:30px; text-transform:uppercase; letter-spacing:1px; display:flex; align-items:center; gap:8px; }
+.preview-qr { width: 100px; height: 100px; border-radius: 8px; border: 1px solid var(--red); margin-top: 10px; object-fit: contain; background: #fff; padding: 5px; }
 </style>
 </head>
 <body>
@@ -58,11 +61,34 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
             <p style="color:#666; font-size:11px">Authenticated Super-Admin Session Active</p>
         </div>
         <div>
+            <a href="charity.html" target="_blank" style="color:#aaa; font-size:11px; margin-right:15px; text-decoration:none;">Charity Page ↗</a>
             <a href="movies.html" target="_blank" style="color:#aaa; font-size:11px; margin-right:15px; text-decoration:none;">View Page ↗</a>
             <button class="del-btn" id="lockBtn">🔒 Logout & Lock</button>
         </div>
     </div>
 
+    <!-- CHARITY / UPI PAYMENT SETTINGS FORM -->
+    <div class="section-title">💳 PAYMENT & CHARITY SETTINGS</div>
+    <form class="grid-form" id="paymentForm">
+        <div>
+            <label>UPI ID (For Donations)</label>
+            <input type="text" id="pUpi" placeholder="e.g. raj@upi" required>
+        </div>
+        <div>
+            <label>QR Code Image Direct Link (URL)</label>
+            <input type="url" id="pQrUrl" placeholder="https://example.com/my-qr.png" required>
+        </div>
+        <div class="full" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <label>Current Saved QR Preview</label><br>
+                <img id="qrPreviewImg" class="preview-qr" src="" alt="No QR Set">
+            </div>
+            <button type="submit" class="btn-admin" style="height: fit-content; padding: 14px 25px;">Update Payment Config</button>
+        </div>
+    </form>
+
+    <!-- MOVIE PUBLISH FORM -->
+    <div class="section-title">🎬 PUBLISH NEW MOVIE</div>
     <form class="grid-form" id="movieForm">
         <div>
             <label>Movie Title</label>
@@ -92,7 +118,7 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
         </div>
     </form>
 
-    <h3 style="font-size:14px; margin-bottom:15px; color:#888;">LIVE DATABASE MOVIES</h3>
+    <div class="section-title">📚 LIVE DATABASE MOVIES</div>
     <div id="adminMovieList">Loading database...</div>
 </div>
 
@@ -139,13 +165,43 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
           document.getElementById("authBox").style.display = "none";
           document.getElementById("dashBoard").style.display = "block";
           listenToMovies();
+          listenToPaymentDetails();
       } else {
           document.getElementById("authBox").style.display = "block";
           document.getElementById("dashBoard").style.display = "none";
       }
   });
 
-  // Form Submit Handler
+  // Save UPI & QR Code Settings to Firebase Live DB
+  document.getElementById("paymentForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const upiVal = document.getElementById("pUpi").value.trim();
+      const qrVal = document.getElementById("pQrUrl").value.trim();
+
+      set(ref(db, 'payment_details'), {
+          upiId: upiVal,
+          qrUrl: qrVal,
+          updatedAt: Date.now()
+      }).then(() => {
+          alert("🚀 Payment details updated live!");
+      }).catch((err) => {
+          alert("❌ Error saving payment details: " + err.message);
+      });
+  });
+
+  // Read Payment Details for Preview
+  function listenToPaymentDetails() {
+      onValue(ref(db, 'payment_details'), (snapshot) => {
+          const data = snapshot.val();
+          if(data) {
+              document.getElementById("pUpi").value = data.upiId || "";
+              document.getElementById("pQrUrl").value = data.qrUrl || "";
+              document.getElementById("qrPreviewImg").src = data.qrUrl || "";
+          }
+      });
+  }
+
+  // Form Submit Handler for Movies
   document.getElementById("movieForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const moviesRef = ref(db, 'movies');
