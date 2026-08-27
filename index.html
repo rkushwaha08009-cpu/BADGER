@@ -176,7 +176,6 @@ nav{
     color:#fff;
 }
 
-/* PREMIUM NAV LINK */
 .nav-center a.movies-link{
     color:#fff !important;
     background:rgba(255, 23, 68, 0.12);
@@ -357,7 +356,6 @@ nav{
     transition:.3s ease;
 }
 
-/* ULTRA-PREMIUM MAIN CTA BUTTON */
 .btn-red-premium{
     color:#fff !important;
     background: linear-gradient(135deg, #ff1744, #b20024);
@@ -513,6 +511,7 @@ nav{
     border-bottom:1px solid #222;
 }
 
+/* Dynamic Live Animation Transitions */
 .bar{
     flex:1;
     position:relative;
@@ -520,7 +519,8 @@ nav{
     min-width:12px;
     border-radius:6px 6px 0 0;
     background:linear-gradient(180deg,var(--red),#5b081b);
-    transition:.5s;
+    transition: height 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 12px rgba(255, 23, 68, 0.3);
 }
 
 .bar-label{
@@ -537,8 +537,10 @@ nav{
     top:-18px;
     width:100%;
     text-align:center;
-    color:#888;
-    font-size:8px;
+    color:#fff;
+    font-size:9px;
+    font-weight:700;
+    transition: all 0.5s ease;
 }
 
 .rank-list{
@@ -580,6 +582,7 @@ nav{
     display:block;
     height:100%;
     background:var(--red);
+    transition: width 1s ease;
 }
 
 .rank-score{
@@ -595,6 +598,7 @@ footer{
     border-top:1px solid var(--line);
     display:flex;
     justify-content:space-between;
+    align-items:center;
     color:#444;
     font-size:9px;
     letter-spacing:1px;
@@ -609,7 +613,122 @@ footer{
     color:var(--red);
 }
 
-/* SLEEK FLOATING DOCK */
+.footer-charity-btn {
+    color: #fff;
+    background: rgba(255, 23, 68, 0.1);
+    border: 1px solid rgba(255, 23, 68, 0.3);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 9px;
+    font-weight: 800;
+    text-decoration: none;
+    letter-spacing: 1px;
+    transition: 0.3s;
+}
+.footer-charity-btn:hover {
+    background: var(--red);
+    border-color: var(--red);
+}
+
+.charity-popup {
+    position: fixed;
+    bottom: -220px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(580px, 94%);
+    background: linear-gradient(135deg, #141419, #0d0d12);
+    border: 2px solid rgba(255, 23, 68, 0.6);
+    border-radius: 22px;
+    padding: 26px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.9), 0 0 35px rgba(255,23,68,0.35);
+    z-index: 9999;
+    transition: bottom 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.charity-popup.show {
+    bottom: 35px;
+}
+
+.popup-left h4 {
+    font-size: 18px;
+    font-weight: 900;
+    color: #fff;
+    margin-bottom: 6px;
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -0.5px;
+}
+
+.popup-left p {
+    font-size: 12px;
+    color: #aaa;
+    line-height: 1.5;
+}
+
+.popup-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.popup-support-btn {
+    background: linear-gradient(135deg, #ff1744, #b20024);
+    color: #fff;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 900;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255,23,68,0.4);
+    transition: 0.2s;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.popup-support-btn:hover {
+    transform: scale(1.05);
+    background: #ff003c;
+    box-shadow: 0 6px 20px rgba(255,23,68,0.7);
+}
+
+.popup-dismiss-btn {
+    background: rgba(255,255,255,0.06);
+    color: #ccc;
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 12px 18px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.2s;
+    white-space: nowrap;
+}
+
+.popup-dismiss-btn:hover {
+    background: #fff;
+    color: #000;
+}
+
+@media(max-width:650px){
+    .charity-popup {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 18px;
+        padding: 22px;
+    }
+    .popup-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .popup-support-btn, .popup-dismiss-btn {
+        flex: 1;
+        text-align: center;
+    }
+}
+
 .floating{
     position:fixed;
     z-index:800;
@@ -687,9 +806,8 @@ footer{
     .nav-right .icon-btn{ display:none; }
     .hero h1{ font-size:clamp(58px,17vw,95px); }
     .stats{ grid-template-columns:repeat(2,1fr); }
-    footer{ flex-direction:column; gap:12px; }
+    footer{ flex-direction:column; gap:15px; }
 
-    /* CLEAN MOBILE BOTTOM BAR */
     .mobile-nav{
         position:fixed;
         display:flex;
@@ -764,6 +882,7 @@ footer{
         <a href="#home">Home</a>
         <a href="https://www.profitableratecpmnetwork.com/v9t4iwye?key=d378794adebb734d009f4350373582eb" target="_blank" data-target-page="movies.html" class="movies-link ad-movie-trigger">MOVIES 🍿</a>
         <a href="#analytics">Analytics</a>
+        <a href="charity.html" style="color:var(--red);">SUPPORT 🤍</a>
     </div>
 
     <div class="nav-right">
@@ -858,10 +977,10 @@ footer{
     <div class="analytics">
         <div class="panel">
             <div class="panel-head">
-                <div class="panel-title">Weekly Edit Reach</div>
+                <div class="panel-title">Weekly Edit Reach (Live)</div>
             </div>
 
-            <div class="chart">
+            <div class="chart" id="liveChart">
                 <div class="bar" style="--h:35%"><span class="bar-value">18</span><span class="bar-label">MON</span></div>
                 <div class="bar" style="--h:48%"><span class="bar-value">25</span><span class="bar-label">TUE</span></div>
                 <div class="bar" style="--h:42%"><span class="bar-value">22</span><span class="bar-label">WED</span></div>
@@ -882,18 +1001,18 @@ footer{
                     <div class="rank-no">01</div>
                     <div class="rank-info">
                         <div class="rank-name">HERO ELEVATION</div>
-                        <div class="rank-line"><span style="width:98%"></span></div>
+                        <div class="rank-line"><span id="rankLine1" style="width:98%"></span></div>
                     </div>
-                    <div class="rank-score">98</div>
+                    <div class="rank-score" id="rankScore1">98</div>
                 </div>
 
                 <div class="rank">
                     <div class="rank-no">02</div>
                     <div class="rank-info">
                         <div class="rank-name">MASS ATTITUDE</div>
-                        <div class="rank-line"><span style="width:92%"></span></div>
+                        <div class="rank-line"><span id="rankLine2" style="width:92%"></span></div>
                     </div>
-                    <div class="rank-score">92</div>
+                    <div class="rank-score" id="rankScore2">92</div>
                 </div>
             </div>
         </div>
@@ -901,9 +1020,21 @@ footer{
 
 </section>
 
+<div class="charity-popup" id="charityPopup">
+    <div class="popup-left">
+        <h4>Support the Charity 🤍</h4>
+        <p>Help us keep server costs & platforms running free for everyone.</p>
+    </div>
+    <div class="popup-actions">
+        <a href="charity.html" class="popup-support-btn">SUPPORT NOW</a>
+        <button class="popup-dismiss-btn" onclick="dismissCharityPopup()">Dismiss</button>
+    </div>
+</div>
+
 <footer>
     <div>© 2026 <span class="footer-logo">BADGE<span>.</span></span></div>
-    <div>CINEMA / CULTURE / ANALYTICS / AURA</div>
+    <a href="charity.html" class="footer-charity-btn">SUPPORT CHARITY 🤍</a>
+    <div>CINEMA / CULTURE / ANALYTICS</div>
 </footer>
 
 <div class="floating">
@@ -917,7 +1048,7 @@ footer{
 <div class="mobile-nav">
     <a href="index.html">◉<span>HOME</span></a>
     <a href="https://www.profitableratecpmnetwork.com/v9t4iwye?key=d378794adebb734d009f4350373582eb" target="_blank" data-target-page="movies.html" class="movies-tab ad-movie-trigger">🎬<span>MOVIES</span></a>
-    <a href="admin.html">🔒<span>ADMIN</span></a>
+    <a href="charity.html">🤍<span>SUPPORT</span></a>
 </div>
 
 <script>
@@ -925,7 +1056,48 @@ window.addEventListener("load",()=>{
     setTimeout(()=>{
         document.getElementById("loader").classList.add("hide");
     },700);
+
+    setTimeout(() => {
+        const popup = document.getElementById("charityPopup");
+        if(popup) {
+            popup.classList.add("show");
+            
+            setTimeout(() => {
+                dismissCharityPopup();
+            }, 10000);
+        }
+    }, 4000);
 });
+
+function dismissCharityPopup() {
+    const popup = document.getElementById("charityPopup");
+    if(popup) {
+        popup.classList.remove("show");
+    }
+}
+
+// REAL-TIME GRAPH ANIMATION (Grow & Down Loop)
+function animateLiveChart() {
+    const bars = document.querySelectorAll("#liveChart .bar");
+    bars.forEach(bar => {
+        const newHeight = Math.floor(Math.random() * 65) + 30; // 30% se 95% float
+        const newVal = Math.floor((newHeight / 100) * 65);
+        bar.style.setProperty("--h", newHeight + "%");
+        const valSpan = bar.querySelector(".bar-value");
+        if(valSpan) valSpan.innerText = newVal;
+    });
+
+    // Dynamic Rank adjustment
+    const score1 = Math.floor(Math.random() * 8) + 92;
+    const score2 = Math.floor(Math.random() * 8) + 85;
+    document.getElementById("rankScore1").innerText = score1;
+    document.getElementById("rankLine1").style.width = score1 + "%";
+    document.getElementById("rankScore2").innerText = score2;
+    document.getElementById("rankLine2").style.width = score2 + "%";
+}
+
+// Har 2.5 second me smooth real-time upward/downward movement
+setInterval(animateLiveChart, 2500);
 
 let currentSlide=0;
 const slides=document.querySelectorAll(".hero-slide");
@@ -1008,7 +1180,6 @@ function animateParticles(){
 }
 animateParticles();
 
-// Smart Monetization Trigger for Movie Hub Links
 document.querySelectorAll(".ad-movie-trigger").forEach(btn => {
     btn.addEventListener("click", function(e) {
         const targetPage = this.getAttribute("data-target-page");
