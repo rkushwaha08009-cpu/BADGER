@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nepal Support & Cinema — BADGE</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Space+Grotesk:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+    --bg: #040405;
+    --card: #0d0d10;
+    --red: #ff1744;
+    --line: rgba(255,255,255,.08);
+    --blue: #0066cc;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { 
+    background: var(--bg); 
+    color: #fff; 
+    font-family: 'Inter', sans-serif; 
+    min-height: 100vh; 
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+body:before {
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:-5;
+    background:
+        radial-gradient(circle at 20% 20%, rgba(255,23,68,.08), transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(0,102,204,.08), transparent 40%);
+}
+
+.header {
+    width: min(900px, 100%);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.logo { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 900; }
+.logo span { color: var(--red); }
+.back-btn { color: #888; text-decoration: none; font-size: 12px; font-weight: 800; transition: 0.2s; }
+.back-btn:hover { color: #fff; }
+
+.main-grid {
+    width: min(900px, 100%);
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 25px;
+}
+
+@media(max-width: 768px) {
+    .main-grid { grid-template-columns: 1fr; }
+}
+
+.section-box {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    padding: 30px 24px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    position: relative;
+}
+
+.tag {
+    background: rgba(255,23,68,0.1);
+    color: var(--red);
+    font-size: 9px;
+    font-weight: 900;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,23,68,0.3);
+    display: inline-block;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+}
+
+h1 { font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 900; margin-bottom: 8px; }
+h1 span { color: var(--red); }
+p.desc { font-size: 13px; color: #aaa; line-height: 1.6; }
+
+.clip-card {
+    background: #000;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    margin-top: 15px;
+}
+
+.clip-video-container {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+}
+
+.clip-video-container iframe, .clip-video-container video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.clip-info {
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.qr-container {
+    margin: 20px auto 15px;
+    width: 190px;
+    height: 190px;
+    border-radius: 16px;
+    border: 2px solid var(--red);
+    padding: 8px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 25px rgba(255,23,68,0.25);
+}
+.qr-container img { width: 100%; height: 100%; object-fit: contain; border-radius: 10px; }
+
+.upi-box {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--line);
+    padding: 12px 18px;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+.upi-text { font-size: 12px; font-weight: 700; color: #fff; word-break: break-all; }
+.copy-btn { background: rgba(255,23,68,0.2); color: var(--red); border: 1px solid rgba(255,23,68,0.4); padding: 6px 14px; border-radius: 20px; font-size: 10px; font-weight: 900; cursor: pointer; transition: 0.2s; white-space: nowrap; margin-left: 10px; }
+.copy-btn:hover { background: var(--red); color: #fff; }
+
+.donate-btn {
+    display: block;
+    width: 100%;
+    margin-top: 20px;
+    padding: 16px;
+    text-align: center;
+    background: linear-gradient(135deg, #ff1744, #b20024);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 900;
+    font-size: 13px;
+    border-radius: 40px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    box-shadow: 0 10px 30px rgba(255,23,68,0.4);
+    transition: 0.3s ease;
+}
+.donate-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 15px 40px rgba(255,23,68,0.7); }
+
+.note { font-size: 10px; color: #666; text-align: center; margin-top: 12px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo">BADGE<span>.</span> NEPAL</div>
+    <a href="index.html" class="back-btn">← BACK TO HOME</a>
+</div>
+
+<div class="main-grid">
+
+    <!-- LEFT: CLIPS / SHOWCASE -->
+    <div>
+        <div class="section-box" style="height: 100%;">
+            <div class="tag">🇳🇵 SPECIAL HIGHLIGHTS</div>
+            <h1>NEPAL <span>CINEMA</span> CLIPS</h1>
+            <p class="desc">Exclusive clips, mountain aesthetics, and mass culture moments from Nepal.</p>
+
+            <div id="clipsContainer">Loading video clips...</div>
+        </div>
+    </div>
+
+    <!-- RIGHT: DONATION / SUPPORT PAGE -->
+    <div>
+        <div class="section-box" style="text-align: center;">
+            <div class="tag">🤍 COMMUNITY SUPPORT</div>
+            <h1>SUPPORT <span>BADGE NEPAL</span></h1>
+            <p class="desc">Help us expand server capacity and keep high-quality cinema edits & archives free for Nepal users.</p>
+
+            <div class="qr-container">
+                <img id="displayQR" src="" alt="Loading Nepal QR...">
+            </div>
+
+            <div class="upi-box">
+                <span class="upi-text" id="displayUPI">Loading eSewa / Wallet...</span>
+                <button class="copy-btn" id="copyBtn">COPY</button>
+            </div>
+
+            <a href="#" id="payBtn" class="donate-btn">DONATE NOW 🚀</a>
+            <p class="note">Supports eSewa, Khalti, Bank Transfer & UPI Payments</p>
+        </div>
+    </div>
+
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBfGylU2R4GTtsgqJsbDl-Y2e8i-a2jbEE",
+    authDomain: "badger-e5c9f.firebaseapp.com",
+    databaseURL: "https://badger-e5c9f-default-rtdb.firebaseio.com",
+    projectId: "badger-e5c9f",
+    storageBucket: "badger-e5c9f.firebasestorage.app",
+    messagingSenderId: "483650469817",
+    appId: "1:483650469817:web:5818b00d1732b8baee8068",
+    measurementId: "G-EXEE25B743"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  let activePayID = "";
+
+  // Helper to convert YouTube URL to embed format
+  function getEmbedUrl(url) {
+      if (!url) return "";
+      let videoId = "";
+      if (url.includes("youtu.be/")) {
+          videoId = url.split("youtu.be/")[1].split("?")[0];
+      } else if (url.includes("watch?v=")) {
+          videoId = url.split("watch?v=")[1].split("&")[0];
+      } else if (url.includes("embed/")) {
+          return url;
+      }
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+  }
+
+  // Live Fetch Clips from DB
+  onValue(ref(db, 'nepal_clips'), (snapshot) => {
+      const data = snapshot.val();
+      const container = document.getElementById("clipsContainer");
+      container.innerHTML = "";
+
+      if(!data) {
+          container.innerHTML = "<p style='color:#666; font-size:12px; margin-top:15px;'>No Nepal clips published yet.</p>";
+          return;
+      }
+
+      Object.keys(data).reverse().forEach(key => {
+          const clip = data[key];
+          const embedUrl = getEmbedUrl(clip.url);
+          
+          const card = document.createElement("div");
+          card.className = "clip-card";
+          card.innerHTML = `
+              <div class="clip-video-container">
+                  <iframe src="${embedUrl}" title="${clip.title}" allowfullscreen></iframe>
+              </div>
+              <div class="clip-info">
+                  <span class="clip-title-text"></span>
+                  <span style="color:var(--red); font-size:10px; font-weight:900;">${clip.tag || 'BADGE EXCLUSIVE'}</span>
+              </div>
+          `;
+          card.querySelector(".clip-title-text").textContent = clip.title || "Nepal Visual Edit";
+          container.appendChild(card);
+      });
+  });
+
+  // Dynamic Payment Details
+  onValue(ref(db, 'nepal_payment_details'), (snapshot) => {
+      const data = snapshot.val();
+      if(data && (data.payId || data.qrUrl)) {
+          activePayID = data.payId || "";
+          const payeeName = encodeURIComponent(data.payeeName || "Badge Nepal");
+          
+          document.getElementById("displayUPI").innerText = activePayID || "Scan QR Below";
+          document.getElementById("displayQR").src = data.qrUrl || `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(activePayID)}`;
+          
+          const payLink = data.payLink || (activePayID.includes("@") ? `upi://pay?pa=${encodeURIComponent(activePayID)}&pn=${payeeName}&cu=INR` : '#');
+          document.getElementById("payBtn").setAttribute("href", payLink);
+      }
+  });
+
+  document.getElementById("copyBtn").addEventListener("click", () => {
+      if(!activePayID) return;
+      navigator.clipboard.writeText(activePayID);
+      alert("Copied: " + activePayID);
+  });
+</script>
+
+</body>
+</html>
