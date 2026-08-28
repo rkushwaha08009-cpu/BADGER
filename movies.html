@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BADGE — Watch & Download Live Movies</title>
+<title id="docTitle">BADGE — Watch & Download Live Movies</title>
 
-<!-- ADSTERRA POPUNDER SCRIPT (Background Ad Earnings) -->
 <script type="text/javascript" src="https://pl31047404.profitableratecpmnetwork.com/09/9e/c1/099ec1cc901a6079dcff36013a287512.js"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Space+Grotesk:wght@700;900&display=swap" rel="stylesheet">
@@ -55,6 +54,88 @@ h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; color: var(--red
 .btn-dl.upcoming { background: #181820; color: #555; pointer-events: none; border: 1px solid var(--line); }
 
 .no-results { grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #555; font-size: 13px; }
+
+/* Dynamic Small Top Pop-up Notification Banner UI */
+.popup-overlay {
+    position: fixed;
+    top: -150px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 380px;
+    z-index: 9999;
+    transition: top 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.popup-overlay.show {
+    top: 15px;
+}
+.popup-box {
+    background: #0d0d11;
+    border: 1px solid var(--red);
+    border-radius: 12px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 10px 25px rgba(255, 23, 68, 0.35);
+    position: relative;
+    overflow: hidden;
+}
+.popup-close {
+    position: absolute;
+    top: 4px; right: 6px;
+    background: transparent;
+    color: #888;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    line-height: 1;
+}
+.popup-close:hover { color: #fff; }
+
+.popup-img-wrapper {
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #111;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.popup-img-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.popup-actions { 
+    flex-grow: 1; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center;
+    gap: 6px;
+    padding-right: 15px;
+}
+.popup-title-text {
+    font-size: 11px;
+    font-weight: 700;
+    color: #eee;
+    line-height: 1.2;
+}
+.btn-help-now {
+    display: inline-block;
+    text-align: center;
+    background: var(--red);
+    color: #fff;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 800;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    transition: 0.2s;
+}
+.btn-help-now:hover { background: #d50000; }
 </style>
 </head>
 <body>
@@ -62,7 +143,7 @@ h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; color: var(--red
 <div class="container">
     <header>
         <h1>
-            BADGE MOVIES
+            <span id="headerTitle">BADGE MOVIES</span>
             <span class="movie-count-badge" id="totalCount">0 MOVIES</span>
         </h1>
         <a href="admin.html" style="color:#666; font-size:11px; text-decoration:none; border:1px solid var(--line); padding:6px 12px; border-radius:20px;">Admin Access ↗</a>
@@ -75,15 +156,28 @@ h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; color: var(--red
         </div>
 
         <div class="filter-tabs">
-            <button class="tab-btn active" data-filter="ALL">All Movies</button>
-            <button class="tab-btn" data-filter="TRENDING">🔥 Trending</button>
-            <button class="tab-btn" data-filter="READY">⚡ Released</button>
-            <button class="tab-btn" data-filter="UPCOMING">⏳ Upcoming</button>
+            <button class="tab-btn active" data-filter="ALL" id="tabAll">All Movies</button>
+            <button class="tab-btn" data-filter="TRENDING" id="tabTrending">🔥 Trending</button>
+            <button class="tab-btn" data-filter="READY" id="tabReleased">⚡ Released</button>
+            <button class="tab-btn" data-filter="UPCOMING" id="tabUpcoming">⏳ Upcoming</button>
         </div>
     </div>
 
     <div class="movie-grid" id="publicMovieList">
         <div class="no-results">Connecting to cloud database...</div>
+    </div>
+</div>
+
+<div id="nepalPopupOverlay" class="popup-overlay">
+    <div class="popup-box">
+        <button class="popup-close" id="closeNepalPopup">&times;</button>
+        <div class="popup-img-wrapper">
+            <img id="nepalPopupImg" src="" alt="Nepal Support">
+        </div>
+        <div class="popup-actions">
+            <span class="popup-title-text" id="popupBannerText">Support Nepal Relief Campaign 🇳🇵</span>
+            <a href="nepal.html" class="btn-help-now" id="popupBannerBtnText">HELP NOW ↗</a>
+        </div>
     </div>
 </div>
 
@@ -105,14 +199,42 @@ h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; color: var(--red
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  const AD_DIRECT_LINK = "https://www.profitableratecpmnetwork.com/v9t4iwye?key=d378794adebb734d009f4350373582eb";
+  let AD_DIRECT_LINK = "https://www.profitableratecpmnetwork.com/v9t4iwye?key=d378794adebb734d009f4350373582eb";
 
   let allMoviesData = [];
   let currentFilter = "ALL";
   let searchQuery = "";
+  let activeBannerUrl = "";
+  let popupInterval = null;
+  let hideTimeout = null;
 
+  // --- 0. DYNAMIC EDITABLE FIELDS LISTENER ---
+  const customFieldsRef = ref(db, 'editable_fields');
+  onValue(customFieldsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
+
+      if (data.site_title?.value) {
+          document.getElementById("headerTitle").textContent = data.site_title.value;
+          document.getElementById("docTitle").textContent = data.site_title.value;
+      }
+      if (data.ad_link?.value) {
+          AD_DIRECT_LINK = data.ad_link.value;
+      }
+      if (data.popup_text?.value) {
+          document.getElementById("popupBannerText").textContent = data.popup_text.value;
+      }
+      if (data.popup_btn_text?.value) {
+          document.getElementById("popupBannerBtnText").textContent = data.popup_btn_text.value;
+      }
+      if (data.tab_all?.value) document.getElementById("tabAll").textContent = data.tab_all.value;
+      if (data.tab_trending?.value) document.getElementById("tabTrending").textContent = data.tab_trending.value;
+      if (data.tab_released?.value) document.getElementById("tabReleased").textContent = data.tab_released.value;
+      if (data.tab_upcoming?.value) document.getElementById("tabUpcoming").textContent = data.tab_upcoming.value;
+  });
+
+  // 1. Firebase Reference for Movies
   const moviesRef = ref(db, 'movies');
-
   onValue(moviesRef, (snapshot) => {
       const data = snapshot.val();
       allMoviesData = [];
@@ -125,6 +247,55 @@ h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; color: var(--red
 
       document.getElementById("totalCount").textContent = `${allMoviesData.length} MOVIES`;
       renderMovies();
+  });
+
+  // 2. Dynamic 25 Sec Cycle Pop-up Handler
+  const nepalPopupRef = ref(db, 'nepal_popup_banner');
+  onValue(nepalPopupRef, (snapshot) => {
+      activeBannerUrl = snapshot.val();
+      const popupImg = document.getElementById("nepalPopupImg");
+
+      if (activeBannerUrl && activeBannerUrl.trim() !== "") {
+          popupImg.src = activeBannerUrl;
+          startPopupLoop();
+      } else {
+          stopPopupLoop();
+      }
+  });
+
+  function showPopupTemporarily() {
+      const popupOverlay = document.getElementById("nepalPopupOverlay");
+      if (!activeBannerUrl) return;
+
+      popupOverlay.classList.add("show");
+
+      clearTimeout(hideTimeout);
+      hideTimeout = setTimeout(() => {
+          popupOverlay.classList.remove("show");
+      }, 5000);
+  }
+
+  function startPopupLoop() {
+      stopPopupLoop();
+      setTimeout(() => {
+          showPopupTemporarily();
+      }, 1000);
+
+      popupInterval = setInterval(() => {
+          showPopupTemporarily();
+      }, 25000);
+  }
+
+  function stopPopupLoop() {
+      const popupOverlay = document.getElementById("nepalPopupOverlay");
+      popupOverlay.classList.remove("show");
+      if (popupInterval) clearInterval(popupInterval);
+      if (hideTimeout) clearTimeout(hideTimeout);
+  }
+
+  document.getElementById("closeNepalPopup").addEventListener("click", () => {
+      document.getElementById("nepalPopupOverlay").classList.remove("show");
+      if (hideTimeout) clearTimeout(hideTimeout);
   });
 
   function renderMovies() {
@@ -175,11 +346,9 @@ h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; color: var(--red
           listContainer.appendChild(card);
       });
 
-      // Attach Click Event for Smart Ad + Download Redirection
       document.querySelectorAll(".download-trigger").forEach(btn => {
           btn.addEventListener("click", function(e) {
               const realLink = this.getAttribute("data-real-link");
-              // Opens real target file/stream in current tab while direct ad opens in new tab via href
               setTimeout(() => {
                   window.location.href = realLink;
               }, 100);
@@ -187,7 +356,6 @@ h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; color: var(--red
       });
   }
 
-  // Event Listeners for Search & Tabs
   document.getElementById("searchInput").addEventListener("input", (e) => {
       searchQuery = e.target.value.trim();
       renderMovies();
