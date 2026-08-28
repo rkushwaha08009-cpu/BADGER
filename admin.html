@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BADGE — Unified Admin Control Center</title>
+<title>BADGE — Dynamic Admin Control Center</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Space+Grotesk:wght@700;900&display=swap" rel="stylesheet">
 <style>
 :root { 
@@ -12,6 +12,7 @@
   --red: #ff1744; 
   --line: rgba(255,255,255,0.08); 
   --blue: #0066cc;
+  --green: #00e676;
 }
 * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter', sans-serif; }
 body { background: var(--bg); color: #fff; min-height: 100vh; padding: 25px 15px; }
@@ -92,7 +93,7 @@ header {
 @media(min-width: 650px) { .grid-form { grid-template-columns: 1fr 1fr; } }
 .full { grid-column: 1 / -1; }
 
-input, select { 
+input, select, textarea { 
   width: 100%; 
   padding: 12px 16px; 
   background: #000; 
@@ -104,7 +105,7 @@ input, select {
   margin-top: 6px; 
   transition: 0.3s; 
 }
-input:focus, select:focus { border-color: var(--red); }
+input:focus, select:focus, textarea:focus { border-color: var(--red); }
 label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercase; letter-spacing: 1px; }
 
 /* Buttons */
@@ -125,6 +126,8 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
 .btn-admin:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(255,23,68,0.3); }
 .btn-blue { background: var(--blue); }
 .btn-blue:hover { box-shadow: 0 4px 15px rgba(0,102,204,0.4); }
+.btn-green { background: var(--green); color: #000; }
+.btn-green:hover { box-shadow: 0 4px 15px rgba(0,230,118,0.4); }
 
 .del-btn { 
   background: #1a0508; 
@@ -150,16 +153,12 @@ label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercas
   padding: 4px; 
 }
 
-/* Movie Items & Table */
-.movie-item { 
-  display: flex; 
-  align-items: center; 
-  justify-content: space-between; 
-  background: #000; 
-  padding: 12px 18px; 
-  border-radius: 10px; 
-  border: 1px solid var(--line); 
-  margin-bottom: 10px; 
+.custom-field-card {
+  background: #000;
+  border: 1px solid var(--line);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 12px;
 }
 .table-wrapper { overflow-x: auto; margin-top: 10px; }
 table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; }
@@ -193,8 +192,8 @@ th { color: #666; font-size: 10px; text-transform: uppercase; letter-spacing: 0.
     <div class="dashboard" id="dashBoard">
         <header>
             <div>
-                <h1 style="font-family:'Space Grotesk', sans-serif; font-size: 24px;">BADGE UNIFIED CONTROL</h1>
-                <p style="color:#666; font-size:11px; margin-top:4px;">Super-Admin Live Session Active</p>
+                <h1 style="font-family:'Space Grotesk', sans-serif; font-size: 24px;" id="hdrTitle">BADGE UNIFIED CONTROL</h1>
+                <p style="color:#666; font-size:11px; margin-top:4px;" id="hdrSub">Super-Admin Live Session Active</p>
             </div>
             <div class="header-links">
                 <a href="nepal.html" target="_blank" class="nav-link highlight">🇳🇵 Nepal Page ↗</a>
@@ -203,6 +202,34 @@ th { color: #666; font-size: 10px; text-transform: uppercase; letter-spacing: 0.
                 <button class="del-btn" id="lockBtn">🔒 Logout & Lock</button>
             </div>
         </header>
+
+        <!-- DYNAMIC / EDITABLE PAGE TEXT & CONTENT MANAGER -->
+        <div class="admin-card" style="border-color: rgba(0, 230, 118, 0.4);">
+            <div class="section-title" style="color:var(--green);">⚡ DYNAMIC EDITABLE TEXT & LABELS (LIVE CONTROL)</div>
+            <p style="font-size:11px; color:#777; margin-bottom:15px;">Add custom key-value pairs (Titles, Time, Subtitles, Text Blocks, etc.) to control site content live via Admin Panel.</p>
+            
+            <form id="customFieldForm" class="grid-form">
+                <div>
+                    <label>Field Identifier Key (e.g., site_title, event_time, header_xyz)</label>
+                    <input type="text" id="fieldKey" placeholder="e.g. event_time" required>
+                </div>
+                <div>
+                    <label>Field Title / Label</label>
+                    <input type="text" id="fieldLabel" placeholder="e.g. Event Start Time" required>
+                </div>
+                <div class="full">
+                    <label>Content / Value (Text, Date, Time, URL, HTML, etc.)</label>
+
+                    <textarea id="fieldValue" rows="2" placeholder="Enter content or value here..." required></textarea>
+                </div>
+                <div class="full" style="display:flex; justify-content:flex-end;">
+                    <button type="submit" class="btn-admin btn-green">Save Dynamic Field</button>
+                </div>
+            </form>
+
+            <div class="section-title" style="font-size:13px; margin-top:25px; color:#aaa;">CURRENT EDITABLE CONTENT KEYS</div>
+            <div id="dynamicFieldsList">Loading fields...</div>
+        </div>
 
         <!-- 1. GLOBAL PAYMENT SETTINGS -->
         <div class="admin-card">
@@ -384,6 +411,7 @@ th { color: #666; font-size: 10px; text-transform: uppercase; letter-spacing: 0.
   // References
   const nepalBannerRef = ref(db, 'nepal_popup_banner');
   const moviesRef = ref(db, 'movies');
+  const customFieldsRef = ref(db, 'editable_fields');
 
   // --- AUTHENTICATION & SESSION ---
   document.getElementById("loginBtn").addEventListener("click", () => {
@@ -412,11 +440,78 @@ th { color: #666; font-size: 10px; text-transform: uppercase; letter-spacing: 0.
   });
 
   function initListeners() {
+      listenToDynamicFields();
       listenToPaymentDetails();
       listenToNepalPaymentDetails();
       listenToNepalBanner();
       listenToNepalClips();
       listenToMovies();
+  }
+
+  // --- 0. DYNAMIC EDITABLE CONTENT CONTROL ---
+  document.getElementById("customFieldForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const rawKey = document.getElementById("fieldKey").value.trim().toLowerCase().replace(/[^a-z0-9_]/g, "_");
+      const label = document.getElementById("fieldLabel").value.trim();
+      const val = document.getElementById("fieldValue").value.trim();
+
+      if(!rawKey || !label || !val) return alert("All fields required!");
+
+      set(ref(db, `editable_fields/${rawKey}`), {
+          key: rawKey,
+          label: label,
+          value: val,
+          updatedAt: Date.now()
+      }).then(() => {
+          document.getElementById("customFieldForm").reset();
+          alert(`✅ Editable field '${rawKey}' saved!`);
+      });
+  });
+
+  function listenToDynamicFields() {
+      onValue(customFieldsRef, (snapshot) => {
+          const data = snapshot.val();
+          const list = document.getElementById("dynamicFieldsList");
+          list.innerHTML = "";
+          if(!data) {
+              list.innerHTML = "<p style='color:#444; font-size:11px;'>No custom editable fields yet. Add one above!</p>";
+              return;
+          }
+          Object.keys(data).forEach(key => {
+              const f = data[key];
+              const card = document.createElement("div");
+              card.className = "custom-field-card";
+              card.innerHTML = `
+                  <div style="display:flex; justify-space-between; align-items:center; margin-bottom:8px;">
+                      <div>
+                          <strong style="color:var(--green); font-size:12px;">${f.label}</strong>
+                          <span style="color:#666; font-size:10px; margin-left:8px;">(Key: ${f.key})</span>
+                      </div>
+                      <button class="del-btn delete-field-btn" data-key="${f.key}">Delete</button>
+                  </div>
+                  <input type="text" class="field-value-input" value="${f.value}" style="margin-top:0;">
+                  <button class="btn-admin update-field-btn" data-key="${f.key}" data-label="${f.label}" style="margin-top:8px; padding:6px 12px; font-size:9px;">Save Update</button>
+              `;
+
+              card.querySelector(".update-field-btn").addEventListener("click", (e) => {
+                  const newVal = card.querySelector(".field-value-input").value.trim();
+                  set(ref(db, `editable_fields/${f.key}`), {
+                      key: f.key,
+                      label: f.label,
+                      value: newVal,
+                      updatedAt: Date.now()
+                  }).then(() => alert(`✅ Updated ${f.key}`));
+              });
+
+              card.querySelector(".delete-field-btn").addEventListener("click", () => {
+                  if(confirm(`Delete editable key '${f.key}'?`)) {
+                      remove(ref(db, `editable_fields/${f.key}`));
+                  }
+              });
+
+              list.appendChild(card);
+          });
+      });
   }
 
   // --- 1. GLOBAL PAYMENT LOGIC ---
