@@ -39,21 +39,34 @@ h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; color: var(--red
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; transition: 0.3s; position: relative; display: flex; flex-direction: column; }
 .card:hover { transform: translateY(-6px); border-color: var(--red); box-shadow: 0 10px 25px rgba(255,23,68,0.15); }
 .poster-wrapper { position: relative; width: 100%; height: 240px; background: #111; overflow: hidden; }
-.poster { width: 100%; height: 100%; object-fit: cover; transition: 0.4s; }
+
+/* Original Image Presentation */
+.poster { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    transition: 0.4s; 
+}
 .card:hover .poster { transform: scale(1.05); }
 
 .badge-trend { position: absolute; top: 10px; right: 10px; background: var(--red); color: #fff; font-size: 8px; font-weight: 900; padding: 4px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
 .rating-tag { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); color: #fff; font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); }
 
 .info { padding: 14px; display: flex; flex-direction: column; flex-grow: 1; justify-content: space-between; }
-.title { font-size: 13px; font-weight: 800; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+.title { font-size: 13px; font-weight: 800; margin-bottom: 8px; height: 36px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: #fff; }
 .status-text { font-size: 10px; font-weight: 700; color: #777; margin-bottom: 12px; display: flex; align-items: center; gap: 5px; }
 
 .btn-dl { display: block; width: 100%; text-align: center; background: #fff; color: #000; text-decoration: none; padding: 10px; border-radius: 8px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; transition: 0.2s; cursor: pointer; }
 .btn-dl:hover { background: var(--red); color: #fff; }
-.btn-dl.upcoming { background: #181820; color: #555; pointer-events: none; border: 1px solid var(--line); }
 
 .no-results { grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #555; font-size: 13px; }
+
+/* Pagination Styling */
+.pagination-container { display: flex; justify-content: center; align-items: center; gap: 15px; margin: 40px 0 20px 0; }
+.page-btn { background: var(--card); border: 1px solid var(--line); color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 12px; font-weight: 800; cursor: pointer; transition: 0.3s; }
+.page-btn:hover:not(:disabled) { background: var(--red); border-color: var(--red); }
+.page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.page-info { font-size: 12px; font-weight: 800; color: var(--red); background: rgba(255,23,68,0.1); padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,23,68,0.2); }
 
 /* Dynamic Small Top Pop-up Notification Banner UI */
 .popup-overlay {
@@ -164,7 +177,13 @@ h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; color: var(--red
     </div>
 
     <div class="movie-grid" id="publicMovieList">
-        <div class="no-results">Connecting to cloud database...</div>
+        <div class="no-results">⚡ Connecting to Google Proxy...</div>
+    </div>
+
+    <div class="pagination-container">
+        <button class="page-btn" id="prevBtn" disabled>⬅ Back</button>
+        <span class="page-info" id="pageIndicator">Page 1 / 99</span>
+        <button class="page-btn" id="nextBtn">Next ➡</button>
     </div>
 </div>
 
@@ -199,14 +218,25 @@ h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; color: var(--red
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxtp_cGUbk0JJG1ru90lisH-M73Mh7GBs-hhXT1_Clok7P9NSiQioVBmmekhThJe8Nl/exec";
+  const TARGET_SITE = "https://filmyfly.green";
   let AD_DIRECT_LINK = "https://www.profitableratecpmnetwork.com/v9t4iwye?key=d378794adebb734d009f4350373582eb";
 
-  let allMoviesData = [];
+  let fetchedMoviesData = [];
   let currentFilter = "ALL";
   let searchQuery = "";
+  let currentPage = 1;
+  const maxPage = 99;
+
   let activeBannerUrl = "";
   let popupInterval = null;
   let hideTimeout = null;
+
+  // 1999 se लेकर 2035 Tak ke Year Match Karne ke Liye Logic
+  function hasValidMovieYear(text) {
+      const match = text.match(/\b(199[9]|20[0-2][0-9]|203[0-5])\b/);
+      return match !== null;
+  }
 
   // --- 0. DYNAMIC EDITABLE FIELDS LISTENER ---
   const customFieldsRef = ref(db, 'editable_fields');
@@ -233,23 +263,7 @@ h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; color: var(--red
       if (data.tab_upcoming?.value) document.getElementById("tabUpcoming").textContent = data.tab_upcoming.value;
   });
 
-  // 1. Firebase Reference for Movies
-  const moviesRef = ref(db, 'movies');
-  onValue(moviesRef, (snapshot) => {
-      const data = snapshot.val();
-      allMoviesData = [];
-
-      if (data) {
-          Object.keys(data).reverse().forEach(key => {
-              allMoviesData.push({ id: key, ...data[key] });
-          });
-      }
-
-      document.getElementById("totalCount").textContent = `${allMoviesData.length} MOVIES`;
-      renderMovies();
-  });
-
-  // 2. Dynamic 25 Sec Cycle Pop-up Handler
+  // --- POPUP BANNER SYSTEM ---
   const nepalPopupRef = ref(db, 'nepal_popup_banner');
   onValue(nepalPopupRef, (snapshot) => {
       activeBannerUrl = snapshot.val();
@@ -298,30 +312,90 @@ h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; color: var(--red
       if (hideTimeout) clearTimeout(hideTimeout);
   });
 
+  // --- SCRAPING & DATA LOADING VIA GOOGLE SCRIPT ---
+  async function loadMoviesData() {
+      const listContainer = document.getElementById("publicMovieList");
+      listContainer.innerHTML = `<div class="no-results">⏳ Loading movies from Page ${currentPage}...</div>`;
+
+      try {
+          const fetchUrl = `${GOOGLE_SCRIPT_URL}?page=${currentPage}&search=${encodeURIComponent(searchQuery)}`;
+          const response = await fetch(fetchUrl);
+          const rawHtml = await response.text();
+
+          if (rawHtml.startsWith("ERROR:")) {
+              listContainer.innerHTML = `<div class="no-results">⚠️ Target server error. Dubara try karein.</div>`;
+              return;
+          }
+
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(rawHtml, 'text/html');
+
+          fetchedMoviesData = [];
+          const anchors = doc.querySelectorAll('a');
+
+          anchors.forEach(a => {
+              const img = a.querySelector('img');
+              if (img && a.href) {
+
+                  // Clean Direct Image Extractor (No blur replacement)
+                  let imgUrl = img.getAttribute('src') || img.getAttribute('data-src') || '';
+
+                  if (imgUrl && !imgUrl.startsWith('http')) {
+                      imgUrl = TARGET_SITE + '/' + imgUrl.replace(/^\//, '');
+                  }
+
+                  let movieHref = a.getAttribute('href');
+                  if (movieHref && !movieHref.startsWith('http')) {
+                      movieHref = TARGET_SITE + '/' + movieHref.replace(/^\//, '');
+                  }
+
+                  const titleText = img.getAttribute('alt') || a.textContent.trim();
+
+                  const isTelegramLink = movieHref.includes("t.me") || titleText.toLowerCase().includes("telegram");
+                  const isValidYear = hasValidMovieYear(titleText);
+
+                  if (titleText && movieHref && imgUrl && !isTelegramLink && isValidYear && !fetchedMoviesData.some(m => m.link === movieHref)) {
+                      fetchedMoviesData.push({
+                          name: titleText,
+                          banner: imgUrl,
+                          link: movieHref,
+                          rating: "8.5",
+                          trending: titleText.toLowerCase().includes("2024") || titleText.toLowerCase().includes("2025") || titleText.toLowerCase().includes("2026") ? "YES" : "NO"
+                      });
+                  }
+              }
+          });
+
+          renderMovies();
+
+      } catch (error) {
+          console.error(error);
+          listContainer.innerHTML = `<div class="no-results">⚠️ Connection error! URL check karein.</div>`;
+      }
+  }
+
   function renderMovies() {
       const listContainer = document.getElementById("publicMovieList");
       listContainer.innerHTML = "";
 
-      const filtered = allMoviesData.filter(m => {
-          const isUpcoming = !m.link || m.link.trim() === "";
-          
+      const filtered = fetchedMoviesData.filter(m => {
           let matchesFilter = true;
           if (currentFilter === "TRENDING") matchesFilter = m.trending === "YES";
-          if (currentFilter === "READY") matchesFilter = !isUpcoming;
-          if (currentFilter === "UPCOMING") matchesFilter = isUpcoming;
+          if (currentFilter === "READY") matchesFilter = m.link && m.link !== "";
+          if (currentFilter === "UPCOMING") matchesFilter = !m.link;
 
-          const matchesSearch = m.name.toLowerCase().includes(searchQuery.toLowerCase());
-
-          return matchesFilter && matchesSearch;
+          return matchesFilter;
       });
 
       if (filtered.length === 0) {
-          listContainer.innerHTML = `<div class="no-results">❌ No movies found matching your search.</div>`;
+          listContainer.innerHTML = `<div class="no-results">❌ No movies found for this filter.</div>`;
+          document.getElementById("totalCount").textContent = `0 MOVIES`;
           return;
       }
 
+      document.getElementById("totalCount").textContent = `${filtered.length} MOVIES`;
+
       filtered.forEach(m => {
-          const isUpcoming = !m.link || m.link.trim() === "";
           const card = document.createElement("div");
           card.className = "card";
           
@@ -332,33 +406,53 @@ h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; color: var(--red
                   <div class="rating-tag">⭐ ${m.rating}</div>
               </div>
               <div class="info">
-                  <div class="title"></div>
-                  <div class="status-text">
-                      ${isUpcoming ? '⏳ UPCOMING DROP' : '⚡ READY TO WATCH'}
-                  </div>
-                  ${isUpcoming 
-                      ? '<a href="#" class="btn-dl upcoming">COMING SOON</a>' 
-                      : `<a href="${AD_DIRECT_LINK}" target="_blank" data-real-link="${m.link}" class="btn-dl download-trigger">DOWNLOAD / WATCH</a>`}
+                  <div class="title" title="${m.name}">${m.name}</div>
+                  <div class="status-text">⚡ READY TO WATCH</div>
+                  <a href="${AD_DIRECT_LINK}" target="_blank" data-real-link="${m.link}" class="btn-dl download-trigger">DOWNLOAD / WATCH</a>
               </div>
           `;
-
-          card.querySelector(".title").textContent = m.name;
           listContainer.appendChild(card);
       });
 
-      document.querySelectorAll(".download-trigger").forEach(btn => {
-          btn.addEventListener("click", function(e) {
-              const realLink = this.getAttribute("data-real-link");
-              setTimeout(() => {
-                  window.location.href = realLink;
-              }, 100);
-          });
-      });
+      updatePaginationButtons();
   }
 
+  function updatePaginationButtons() {
+      const prevBtn = document.getElementById("prevBtn");
+      const nextBtn = document.getElementById("nextBtn");
+      const pageIndicator = document.getElementById("pageIndicator");
+
+      pageIndicator.textContent = `Page ${currentPage} / ${maxPage}`;
+
+      prevBtn.disabled = (currentPage <= 1 || searchQuery !== "");
+      nextBtn.disabled = (currentPage >= maxPage || searchQuery !== "");
+  }
+
+  // --- EVENT LISTENERS ---
+  document.getElementById("nextBtn").addEventListener("click", () => {
+      if (currentPage < maxPage) {
+          currentPage++;
+          loadMoviesData();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+  });
+
+  document.getElementById("prevBtn").addEventListener("click", () => {
+      if (currentPage > 1) {
+          currentPage--;
+          loadMoviesData();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+  });
+
+  let searchTimer;
   document.getElementById("searchInput").addEventListener("input", (e) => {
-      searchQuery = e.target.value.trim();
-      renderMovies();
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+          searchQuery = e.target.value.trim();
+          currentPage = 1;
+          loadMoviesData();
+      }, 600);
   });
 
   document.querySelectorAll(".tab-btn").forEach(btn => {
@@ -369,6 +463,18 @@ h1 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; color: var(--red
           renderMovies();
       });
   });
+
+  document.getElementById("publicMovieList").addEventListener("click", (e) => {
+      const btn = e.target.closest(".download-trigger");
+      if (btn) {
+          const realLink = btn.getAttribute("data-real-link");
+          setTimeout(() => {
+              window.location.href = realLink;
+          }, 100);
+      }
+  });
+
+  loadMoviesData();
 </script>
 </body>
 </html>
